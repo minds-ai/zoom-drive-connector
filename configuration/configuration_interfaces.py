@@ -1,3 +1,4 @@
+import os
 import yaml
 
 
@@ -68,6 +69,24 @@ class DriveConfig(APIConfigBase):
         return 'Drive'
 
 
+class SystemConfig:
+    def __init__(self, target_folder: str, port: int):
+        """Initializes download folder and port attributes.
+
+        :param target_folder: folder to download temporary recordings.
+        :param port: port on which to run the application.
+        """
+        self.target_folder = target_folder
+        self.port = port
+
+    def validate(self) -> bool:
+        """Returns true if the target folder exists and the port number is greater than 1000.
+
+        :return: True if the conditions listed about evaluate individually to true.
+        """
+        return os.path.isdir(self.target_folder) and self.port > 1000
+
+
 class ConfigInterface:
     def __init__(self, file: str):
         """Initializes and loads configuration file to Python object.
@@ -103,6 +122,7 @@ class ConfigInterface:
 
         zoom_conf = ZoomConfig(conf_dict['key'], conf_dict['secret'], conf_dict['delete'])
         drive_conf = DriveConfig(conf_dict['key'], conf_dict['secret'], conf_dict['folder_id'])
+        local_conf = SystemConfig(conf_dict['target_folder'], conf_dict['port'])
         conf_tuple = (zoom_conf, drive_conf)
 
         for c in conf_tuple:
