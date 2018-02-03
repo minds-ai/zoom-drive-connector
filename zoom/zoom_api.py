@@ -59,7 +59,7 @@ class ZoomAPI:
             # Handle unauthenticated requests.
             raise ZoomAPIException(401, 'Unauthorized', zoom_request.request, 'Not authenticated.')
         else:
-            return zoom_request[0].get("recording_files").get("download_url")
+            return zoom_request.json()[0]['recording_files']['download_url']
 
     def download_recording(self, url: str, auth: dict):
         """Downloads video file from Zoom to local folder.
