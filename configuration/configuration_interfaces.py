@@ -31,6 +31,14 @@ class ZoomConfig(APIConfigBase):
         super().__init__(key, secret)
         self.delete = delete
 
+    @staticmethod
+    def __class__():
+        """Implements __class__ property.
+
+        :return: Name of class
+        """
+        return 'Zoom'
+
 
 class DriveConfig(APIConfigBase):
     def __init__(self, key: str, secret: str, folder_id: str):
@@ -51,19 +59,32 @@ class DriveConfig(APIConfigBase):
         """
         return super().validate() and len(self.folder_id) > 0
 
+    @staticmethod
+    def __class__():
+        """Implements __class__ property.
+
+        :return: Name of class
+        """
+        return 'Drive'
+
 
 class ConfigInterface:
     def __init__(self, file: str):
+        """Initializes and loads configuration file to Python object.
+        """
         self.file = file
-        self.config_dict = None
+        self.config_tuple = None
 
-    def __load_config(self):
+        # Load configuration
+        self.__create_interfaces()
+
+    def __load_config(self) -> dict:
+        """Loads YAML configuration file to Python object. Does some basic error checking to help
+        with debugging bad configuration files.
+        """
         try:
             with open(self.file, 'r') as f:
-                self.config_dict = yaml.safe_load(f)
-        except FileNotFoundError:
-            print('YAML file {f} not found'.format(f=self.file))
-            raise SystemExit  # Crash program
+                return yaml.safe_load(f)
         except yaml.YAMLError as ye:
             print('Error in YAML file {f}'.format(f=self.file))
 
@@ -73,3 +94,20 @@ class ConfigInterface:
                                                         col=ye.problem_mark + 1))
 
             raise SystemExit  # Crash program
+
+    def __create_interfaces(self):
+        """Loads configuration file using `self.__load_config` and generates tuple containing
+        classes specific to each top level section.
+        """
+        conf_dict = self.__load_config()
+
+        zoom_conf = ZoomConfig(conf_dict['key'], conf_dict['secret'], conf_dict['delete'])
+        drive_conf = DriveConfig(conf_dict['key'], conf_dict['secret'], conf_dict['folder_id'])
+        conf_tuple = (zoom_conf, drive_conf)
+
+        for c in conf_tuple:
+            # Validate each item in `conf_tuple`.
+            if not c.validate():
+                raise RuntimeError('Validation of {} failed'.format(c.__class__()))
+
+        self.config_tuple = conf_tuple
