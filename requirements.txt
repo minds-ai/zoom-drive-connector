@@ -1,3 +1,6 @@
 pyjwt
 requests
 pyyaml
+flask
+slackclient
+
