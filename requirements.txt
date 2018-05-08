@@ -3,4 +3,6 @@ requests
 pyyaml
 flask
 slackclient
+python-dateutil
+schedule
 

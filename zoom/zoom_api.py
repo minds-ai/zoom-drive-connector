@@ -1,8 +1,10 @@
+import datetime
 import jwt
 import os
 import time
-
 import shutil
+
+import dateutil.parser
 import requests
 from zoom import ZoomAPIException
 from configuration.configuration_interfaces import ZoomConfig
@@ -57,7 +59,7 @@ class ZoomAPI:
             raise ZoomAPIException(409, 'Resource Conflict', res.request, 'File deleted already.')
 
     @staticmethod
-    def get_recording_url(meeting_id: str, auth: str) -> str:
+    def get_recording_url(meeting_id: str, auth: str) -> (datetime.datetime, str):
         """Given a specific meeting room ID and auth token, this function gets the download url
         for most recent recording in the given meeting room.
 
@@ -71,10 +73,12 @@ class ZoomAPI:
             # Handle unauthenticated requests.
             raise ZoomAPIException(401, 'Unauthorized', zoom_request.request, 'Not authenticated.')
         else:
+            #print(zoom_request.json()) note this print does not work inside the docker container
             # Pick download url for video recording, not audio recording.
             for r in zoom_request.json()['recording_files']:
                 if r['file_type'] == 'MP4':
-                    return r['download_url']
+                    date = dateutil.parser.parse(r['recording_start'])
+                    return (date, r['download_url'])
 
     def download_recording(self, url: str) -> str:
         """Downloads video file from Zoom to local folder.
@@ -94,9 +98,10 @@ class ZoomAPI:
         filename = url.split('/')[-1]
         zoom_request = session.get(url, stream=True)
 
-        with open(os.path.join(self.fs_target, filename + ".mp4"), 'wb') as source:
+        outfile = os.path.join(self.fs_target, filename + ".mp4")
+        with open(outfile, 'wb') as source:
             shutil.copyfileobj(zoom_request.raw, source) # Copy raw file data to local file.
-        return filename
+        return outfile
 
     def pull_file_from_zoom(self, meeting_id: str, rm: bool = True) -> bool:
         """Interface for downloading recordings from Zoom. Optionally trashes recorded file on Zoom.
@@ -111,14 +116,14 @@ class ZoomAPI:
             zoom_auth = {'Authorization': 'Bearer {jwt}'.format(jwt=zoom_token)}
             
             # Get URL and download the file.
-            zoom_url = self.get_recording_url(meeting_id, zoom_token)
+            date, zoom_url = self.get_recording_url(meeting_id, zoom_token)
             
             print("Recording URL: ", zoom_url)
            
             filename = self.download_recording(zoom_url)
             
             print("Download complete")
-            return filename
+            return (date, filename)
             #TODO(jbedorf): Enable the deletion
 
             if rm:
