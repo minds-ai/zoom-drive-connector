@@ -27,8 +27,8 @@ from configuration.configuration_interfaces import *
 
 sconfig = SlackConfig(slack_token, "z-jeroen-bot") # TODO get channel from the yaml config
  
-# TODO(jbedorf): How do we retrieve those meeting IDs apart from query?
-meetings = {"***REMOVED***" : "CWW2"}
+# Meeting ID, you can get that from the invite ID
+meetings = {"***REMOVED***" : "CWW"}
 #            "***REMOVED***" : "CWW2"}
 
 
