@@ -18,7 +18,6 @@ from zoom.zoom_api import ZoomAPI
 from slack.slack_api import SlackAPI
 from configuration.configuration_interfaces import *
 
-
 from flask import Flask, request, abort
 
 import threading
