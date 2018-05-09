@@ -19,19 +19,6 @@ from slack.slack_api import SlackAPI
 from configuration.configuration_interfaces import *
 
 
-
-#ZOOMCONFIG = ZoomConfig("key", "secret","user@minds.ai", "user-passwrd", False)
-#slack_token ="slack token of the bot"
-
-
-
-sconfig = SlackConfig(slack_token, "z-jeroen-bot") # TODO get channel from the yaml config
- 
-# TODO(jbedorf): How do we retrieve those meeting IDs apart from query?
-meetings = {"***REMOVED***" : "CWW2"}
-#            "***REMOVED***" : "CWW2"}
-
-
 from flask import Flask, request, abort
 
 import threading
@@ -61,41 +48,41 @@ def webhook():
     else:
         abort(400)
 
-def all_steps():
-    download_files = download()
+def all_steps(config):
+    download_files = download(config.zoom_conf)
     
     for file in download_files:
         print("Got: ", file["file"])
         print(file)
       
-    upload(download_files)
-    notify(download_files)
+    upload(download_files, config.drive_conf)
+    notify(download_files, config.slack_conf)
         
-def download() -> list:
-    zoom = ZoomAPI(ZOOMCONFIG)
+def download(zoom_conf) -> list:
+    zoom = ZoomAPI(zoom_conf)
     
     result = []
     
-    for meeting in meetings:
-        date, storage_url = zoom.pull_file_from_zoom(meeting, rm = False)
+    for meeting in zoom_conf.meetings:
+        date, storage_url = zoom.pull_file_from_zoom(meeting["id"], rm = False)
         print("From {} downloaded {}".format(meeting, storage_url))
-        name = "{}-{}.mp4".format(date.strftime("%Y%m%d"), meetings[meeting])
+        name = "{}-{}.mp4".format(date.strftime("%Y%m%d"),  meeting["name"])
         
         result.append({
-            "meeting" : meetings[meeting], 
+            "meeting" : meeting["name"], 
             "file" : storage_url,
             "name" : name,
             "date" : date})
         
     return result
     
-def upload(files : list):
+def upload(files : list, drive_conf):
     
     for file in files:        
         pass
 
-def notify(files : list):
-    slack = SlackAPI(sconfig)
+def notify(files : list, slack_conf):
+    slack = SlackAPI(slack_conf)
     for file in files:
         msg = "The recording for the {} meeting on {} is now available at: {}".format(file["meeting"],
                  file["date"].strftime("%B %d, %Y"), "https://www.google.com")
@@ -103,6 +90,12 @@ def notify(files : list):
         
 
 if __name__ == '__main__':
+    config = ConfigInterface("config.yaml")
+    
+    all_steps(config)
+    
+    sys.exit(0)
+    
     #app.run(port=12399, debug=True,host='0.0.0.0')
     #threaded = True
     schedule.every(10).minutes.do(all_steps)

@@ -43,7 +43,7 @@ class SlackConfig(APIConfigBase):
     
     
 class ZoomConfig(APIConfigBase):
-    def __init__(self, key: str, secret: str, username: str, password: str, delete: bool):
+    def __init__(self, key: str, secret: str, username: str, password: str, delete: bool, meetings: list):
         """Initializes key, secret, and delete recording option for Zoom API. Passes `self.key` and
         `self.secret` to APIConfigBase.
 
@@ -57,6 +57,7 @@ class ZoomConfig(APIConfigBase):
         self.username = username
         self.password = password
         self.delete = delete
+        self.meetings = meetings
 
     @staticmethod
     def __class__():
@@ -146,10 +147,19 @@ class ConfigInterface:
         """
         conf_dict = self.__load_config()
 
-        zoom_conf = ZoomConfig(conf_dict['key'], conf_dict['secret'], conf_dict['delete'])
-        drive_conf = DriveConfig(conf_dict['key'], conf_dict['secret'], conf_dict['folder_id'])
-        local_conf = SystemConfig(conf_dict['target_folder'], conf_dict['port'])
-        conf_tuple = (zoom_conf, drive_conf)
+        zoom = conf_dict["zoom"]
+        print(zoom['meetings'])
+        self.zoom_conf = ZoomConfig(zoom['key'], zoom['secret'], zoom['username'], zoom['password'], zoom['delete'], zoom['meetings'])
+        drive = conf_dict["drive"]
+        self.drive_conf = DriveConfig(drive['credentials_json'], drive['client_secret_json'], drive['folder_id'])
+        slack = conf_dict["slack"]
+        self.slack_conf = SlackConfig(slack["key"], slack["channel"])
+
+        local = conf_dict["internals"]
+        self.local_conf = SystemConfig(local['target_folder'], local['port'])
+
+
+        conf_tuple = (self.zoom_conf, self.drive_conf) # local_conf slack_conf
 
         for c in conf_tuple:
             # Validate each item in `conf_tuple`.
