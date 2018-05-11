@@ -63,15 +63,16 @@ def download(zoom_conf) -> list:
     result = []
     
     for meeting in zoom_conf.meetings:
-        date, storage_url = zoom.pull_file_from_zoom(meeting["id"], rm = False)
-        print("From {} downloaded {}".format(meeting, storage_url))
-        name = "{}-{}.mp4".format(date.strftime("%Y%m%d"),  meeting["name"])
-        
-        result.append({
-            "meeting" : meeting["name"], 
-            "file" : storage_url,
-            "name" : name,
-            "date" : date})
+        date, storage_url = zoom.pull_file_from_zoom(meeting["id"], rm = zoom_conf.delete)
+        if date != False:
+            print("From {} downloaded {}".format(meeting, storage_url))
+            name = "{}-{}.mp4".format(date.strftime("%Y%m%d"),  meeting["name"])
+
+            result.append({
+                "meeting" : meeting["name"], 
+                "file" : storage_url,
+                "name" : name,
+                "date" : date})
         
     return result
     
