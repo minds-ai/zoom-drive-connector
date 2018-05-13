@@ -9,13 +9,17 @@ the zoom documentation.
 """
 
 import datetime
+import os
 import time
+
 
 import schedule
 
 from zoom.zoom_api_exception import ZoomAPIException
 from zoom.zoom_api import ZoomAPI
 from slack.slack_api import SlackAPI
+from drive.drive_api import DriveAPI
+from drive.drive_api_exception import DriveAPIException
 from configuration.configuration_interfaces import *
 
 from flask import Flask, request, abort
@@ -53,6 +57,7 @@ def all_steps(config):
     for file in download_files:
         print("Got: ", file["file"])
         print(file)
+        
       
     upload(download_files, config.drive_conf)
     notify(download_files, config.slack_conf)
@@ -76,26 +81,37 @@ def download(zoom_conf) -> list:
         
     return result
     
-def upload(files : list, drive_conf):
+def upload(files : list, drive_conf):    
+    drive = DriveAPI("", drive_conf.key, drive_conf.secret, drive_conf.folder_id)
     
-    for file in files:        
-        pass
+    for file in files:
+        try:
+            file["url"] = drive.upload_file(file["file"], file["name"])
+        except DriveAPIException as e:
+            print("Upload failed")
+            raise e
+        #Remove the file after uploading so we do not run out of disk space in our container
+        os.remove(file["file"])
+    
 
 def notify(files : list, slack_conf):
     slack = SlackAPI(slack_conf)
     for file in files:
-        msg = "The recording for the {} meeting on {} is now available at: {}".format(file["meeting"],
-                 file["date"].strftime("%B %d, %Y"), "https://www.google.com")
+        msg = "The recording for the _{}_ meeting on _{}_ is <{}| now available>".format(file["meeting"],
+                 file["date"].strftime("%B %d, %Y"), file["url"])
         slack.post_message(msg)
         
 
+#Run as Python main.py --noauth_local_webserver
 if __name__ == '__main__':
     config = ConfigInterface("config.yaml")
     
+    # Run authenthication at start so we do get a prompt when running in a docker container
+    drive = DriveAPI("", config.drive_conf.key, config.drive_conf.secret, config.drive_conf.folder_id)# DriveAPI("", "credentials.json", "client_secrets.json", "1PLX1SoyFgvpCVfCSNo5h84czWH8S3m0W")
+        
     all_steps(config)
-    
-    sys.exit(0)
-    
+
+       
     #app.run(port=12399, debug=True,host='0.0.0.0')
     #threaded = True
     schedule.every(10).minutes.do(all_steps)
