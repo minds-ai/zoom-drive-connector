@@ -1,3 +1,5 @@
 pyjwt
 requests
 pyyaml
+google-api-python-client
+httplib2
