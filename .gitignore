@@ -105,3 +105,7 @@ ENV/
 
 # Ignore .DS_Store files.
 .DS_Store
+
+# Google Drive Secrets.
+credentials.json
+client_secret.json
