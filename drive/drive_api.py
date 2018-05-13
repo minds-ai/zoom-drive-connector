@@ -28,6 +28,8 @@ class DriveAPI:
 
         self._SCOPES = ['https://www.googleapis.com/auth/drive.file']
         self._service = None
+        
+        self.setup()
 
     def setup(self):
         """Triggers the OAuth2 setup flow for Google API endpoints. Requires the ability to open
@@ -44,10 +46,11 @@ class DriveAPI:
                                                   'v3',
                                                   http=creds.authorize(httplib2.Http()))
 
-    def upload_file(self, filename: str) -> str:
+    def upload_file(self, filename: str, name: str) -> str:
         """Uploads the given file to the specified folder id in Google Drive.
 
         :param filename: Name of the file within the storage folder to upload to Drive.
+        :param name: Final name of the file
         :return: The url of the file in Google Drive.
         """
 
@@ -62,7 +65,7 @@ class DriveAPI:
                                     reason='{f} could not be found.'.format(f=complete_path))
 
         # Google Drive file metadata
-        metadata = {'name': filename, 'parents': [self._folder_id]}
+        metadata = {'name': name, 'parents': [self._folder_id]}
 
         # Create a new upload of the recording and execute it.
         media = apiclient.http.MediaFileUpload(complete_path, mimetype='video/mp4')
