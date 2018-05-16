@@ -33,8 +33,7 @@ class ZoomAPI:
     payload = {'iss': self.config.key, 'exp': int(time.time()) + self.timeout}
     return jwt.encode(payload, self.config.secret, algorithm='HS256')
 
-  @staticmethod
-  def delete_recording(meeting_id: str, recording_id: str, auth: str):
+  def delete_recording(self, meeting_id: str, recording_id: str, auth: str):
     """Given a specific meeting room ID, this function trashes all recordings associated with
         that room ID.
 
@@ -55,8 +54,7 @@ class ZoomAPI:
       # Handle error where content may have been removed already.
       raise ZoomAPIException(409, 'Resource Conflict', res.request, 'File deleted already.')
 
-  @staticmethod
-  def get_recording_url(meeting_id: str, auth: str) -> (datetime.datetime, str):
+  def get_recording_url(self, meeting_id: str, auth: str) -> (datetime.datetime, str):
     """Given a specific meeting room ID and auth token, this function gets the download url
         for most recent recording in the given meeting room.
 
@@ -66,6 +64,7 @@ class ZoomAPI:
     zoom_url = 'https://api.zoom.us/v2/meetings/{id}/recordings'.format(id=meeting_id)
     zoom_request = requests.get(zoom_url, params={"access_token": auth})
 
+
     if zoom_request.status_code == 401:
       # Handle unauthenticated requests.
       raise ZoomAPIException(401, 'Unauthorized', zoom_request.request, 'Not authenticated.')
@@ -73,12 +72,18 @@ class ZoomAPI:
       raise ZoomAPIException(404, 'File Not Found', zoom_request.request,
                              'File not found or no recordings')
     else:
-      # Pick download url for video recording, not audio recording.
+      print(zoom_request.json())
       for r in zoom_request.json()['recording_files']:
-        if r['file_type'] == 'MP4':
+        # TODO(jbedorf) : For now let's just delete the chat messages and
+        # continue processing other files
+        if r['file_type'] == 'CHAT':
+          self.delete_recording(meeting_id, r['id'], auth)
+        elif r['file_type'] == 'MP4':
           date = dateutil.parser.parse(r['recording_start'])
           rec_id = r['id']
           return (date, rec_id, r['download_url'])
+      raise ZoomAPIException(404, 'File Not Found', zoom_request.request,
+                             'File not found or no recordings')
 
   def download_recording(self, url: str) -> str:
     """Downloads video file from Zoom to local folder.
