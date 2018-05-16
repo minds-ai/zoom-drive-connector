@@ -114,7 +114,7 @@ if __name__ == '__main__':
        
     #app.run(port=12399, debug=True,host='0.0.0.0')
     #threaded = True
-    schedule.every(10).minutes.do(all_steps)
+    schedule.every(10).minutes.do(all_steps, config)
     while 1:
         schedule.run_pending()
         time.sleep(1)
