@@ -1,6 +1,7 @@
-import apiclient
-import httplib2
 import os
+
+import httplib2
+import apiclient
 
 from oauth2client import file, client, tools
 from drive import DriveAPIException
@@ -26,7 +27,7 @@ class DriveAPI:
     self._secrets = secrets
     self._folder_id = folder_id
 
-    self._SCOPES = ['https://www.googleapis.com/auth/drive.file']
+    self._scopes = ['https://www.googleapis.com/auth/drive.file']
     self._service = None
 
     self.setup()
@@ -39,7 +40,7 @@ class DriveAPI:
     creds = store.get()
 
     if not creds or creds.invalid:
-      flow = client.flow_from_clientsecrets(self._secrets, self._SCOPES)
+      flow = client.flow_from_clientsecrets(self._secrets, self._scopes)
       creds = tools.run_flow(flow, store)
 
     self._service = apiclient.discovery.build('drive', 'v3', http=creds.authorize(httplib2.Http()))
@@ -67,6 +68,8 @@ class DriveAPI:
 
     # Create a new upload of the recording and execute it.
     media = apiclient.http.MediaFileUpload(complete_path, mimetype='video/mp4')
+
+    # pylint: disable=no-member
     uploaded_file = self._service\
         .files()\
         .create(body=metadata, media_body=media, fields='webViewLink')\

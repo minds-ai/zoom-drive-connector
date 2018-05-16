@@ -10,6 +10,7 @@ class ZoomAPIException(Exception):
         :param method: HTTP method used.
         :param message: Exception message/reason.
         """
+    super(ZoomAPIException, self).__init__()
     self.status_code = status_code
     self.name = name
     self.method = method

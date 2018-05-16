@@ -1,17 +1,18 @@
 import datetime
-import jwt
 import os
 import time
 import shutil
 
 import dateutil.parser
+import jwt
 import requests
+
 from zoom import ZoomAPIException
 from configuration.configuration_interfaces import ZoomConfig
 
 
 class ZoomAPI:
-  def __init__(self, config: ZoomConfig, fs_target: str='/tmp'):
+  def __init__(self, config: ZoomConfig, fs_target: str = '/tmp'):
     """Class initialization; sets client key, secret, and download folder path.
 
         :param key: Zoom client key.
@@ -22,7 +23,7 @@ class ZoomAPI:
     self.fs_target = fs_target
 
     # Information required to login to allow downloads
-    self.zoomSignInURL = "https://api.zoom.us/signin"
+    self.zoom_signin_url = "https://api.zoom.us/signin"
     self.timeout = 1800  # Default expiration time is 30 minutes.
 
   def generate_jwt(self) -> str:
@@ -39,7 +40,7 @@ class ZoomAPI:
 
         :param meeting_id: UUID associated with a meeting room.
         :param recording_id: The ID of the recording to delete.
-        :param auth: JWT token.        
+        :param auth: JWT token.
         """
     zoom_url = 'https://api.zoom.us/v2/meetings/{id}/recordings/{rid}'.format(
         id=meeting_id, rid=recording_id)
@@ -72,7 +73,6 @@ class ZoomAPI:
       raise ZoomAPIException(404, 'File Not Found', zoom_request.request,
                              'File not found or no recordings')
     else:
-      #print(zoom_request.json()) note this print does not work inside the docker container
       # Pick download url for video recording, not audio recording.
       for r in zoom_request.json()['recording_files']:
         if r['file_type'] == 'MP4':
@@ -84,7 +84,7 @@ class ZoomAPI:
     """Downloads video file from Zoom to local folder.
 
         :param url: Download URL for meeting recording.
-        
+
         Return:
             Path to the recording
         """
@@ -93,9 +93,10 @@ class ZoomAPI:
     session.headers.update({'content-type': 'application/x-www-form-urlencoded'})
 
     response = session.post(
-        self.zoomSignInURL, data={'email': self.config.username,
+        self.zoom_signin_url, data={'email': self.config.username,
                                   'password': self.config.password})
 
+    response = response  # Make pylint happy
     filename = url.split('/')[-1]
     zoom_request = session.get(url, stream=True)
 
@@ -104,7 +105,7 @@ class ZoomAPI:
       shutil.copyfileobj(zoom_request.raw, source)  # Copy raw file data to local file.
     return outfile
 
-  def pull_file_from_zoom(self, meeting_id: str, rm: bool=True) -> bool:
+  def pull_file_from_zoom(self, meeting_id: str, rm: bool = True) -> bool:
     """Interface for downloading recordings from Zoom. Optionally trashes recorded file on Zoom.
         Returns true if all processes completed successfully.
 
@@ -129,8 +130,7 @@ class ZoomAPI:
       if ze.http_method == 'DELETE':
         # Allow other systems to proceed if delete fails.
         return (True, True)
-      else:
-        return (False, False)
+      return (False, False)
     except OSError as fe:
       # Catches general filesystem errors. If download coult not be written to disk, stop.
       print(fe)

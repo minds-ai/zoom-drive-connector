@@ -1,29 +1,26 @@
 """
 
-The webhook will initiate the download. 
-The webhook has to listen on port 80 or 443 according to 
+The webhook will initiate the download.
+The webhook has to listen on port 80 or 443 according to
 the zoom documentation.
 
 
 
 """
 
-import datetime
 import os
 import time
+import threading
 
 import schedule
 
-from zoom.zoom_api_exception import ZoomAPIException
 from zoom.zoom_api import ZoomAPI
 from slack.slack_api import SlackAPI
 from drive.drive_api import DriveAPI
 from drive.drive_api_exception import DriveAPIException
-from configuration.configuration_interfaces import *
+from configuration.configuration_interfaces import ConfigInterface
 
 from flask import Flask, request, abort
-
-import threading
 
 app = Flask(__name__)
 
@@ -42,7 +39,7 @@ def webhook():
     # Verification of the incoming json/ID
 
     # Take async follow up actions
-    t = threading.Thread(target=handle_response, args=(request.json, ))
+    t = threading.Thread(target=handle_response, args=(request.json,))
     t.start()
 
     return '', 200
@@ -68,7 +65,7 @@ def download(zoom_conf) -> list:
 
   for meeting in zoom_conf.meetings:
     date, storage_url = zoom.pull_file_from_zoom(meeting["id"], rm=zoom_conf.delete)
-    if date != False:
+    if date is not False:
       print("From {} downloaded {}".format(meeting, storage_url))
       name = "{}-{}.mp4".format(date.strftime("%Y%m%d"), meeting["name"])
 
@@ -86,7 +83,7 @@ def upload(files: list, drive_conf):
     except DriveAPIException as e:
       print("Upload failed")
       raise e
-    #Remove the file after uploading so we do not run out of disk space in our container
+    # Remove the file after uploading so we do not run out of disk space in our container
     os.remove(file["file"])
 
 
@@ -98,7 +95,7 @@ def notify(files: list, slack_conf):
     slack.post_message(msg)
 
 
-#Run as Python main.py --noauth_local_webserver
+# Run as Python main.py --noauth_local_webserver
 if __name__ == '__main__':
   config = ConfigInterface("config.yaml")
 
@@ -109,8 +106,8 @@ if __name__ == '__main__':
 
   all_steps(config)
 
-  #app.run(port=12399, debug=True,host='0.0.0.0')
-  #threaded = True
+  # app.run(port=12399, debug=True,host='0.0.0.0')
+  # threaded = True
   schedule.every(10).minutes.do(all_steps, config)
   while 1:
     schedule.run_pending()
