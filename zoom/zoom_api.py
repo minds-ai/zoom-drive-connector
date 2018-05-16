@@ -64,7 +64,6 @@ class ZoomAPI:
     zoom_url = 'https://api.zoom.us/v2/meetings/{id}/recordings'.format(id=meeting_id)
     zoom_request = requests.get(zoom_url, params={"access_token": auth})
 
-
     if zoom_request.status_code == 401:
       # Handle unauthenticated requests.
       raise ZoomAPIException(401, 'Unauthorized', zoom_request.request, 'Not authenticated.')
