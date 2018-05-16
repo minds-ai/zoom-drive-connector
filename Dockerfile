@@ -16,4 +16,4 @@ WORKDIR /app
 
 RUN pip install -r requirements.txt
 
-CMD ["main.py"]
+CMD ["-u", "main.py", "--noauth_local_webserver"]
