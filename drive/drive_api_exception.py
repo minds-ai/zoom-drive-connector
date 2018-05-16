@@ -6,6 +6,7 @@ class DriveAPIException(Exception):
         :param name: Name of the error.
         :param reason: Reason for error.
         """
+    super(DriveAPIException, self).__init__()
     self.name = name
     self.reason = reason
 
