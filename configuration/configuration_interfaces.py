@@ -1,69 +1,37 @@
 import os
 import yaml
 
+from typing import Union
+
 
 class APIConfigBase:
-  def __init__(self, key: str, secret: str):
+  def __init__(self, settings_dict: dict):
     """Initializes key and secret values.
 
-    :param key: API client key.
-    :param secret: API client secret.
+    :param settings_dict: dictionary of settings corresponding to specific service.
     """
-    self.key = key
-    self.secret = secret
+    self.settings_dict = settings_dict
 
-  def validate(self) -> bool:
-    """Checks to see if key and secret values are not empty.
+  def __getattr__(self, item) -> Union[str, int]:
+    """Allows for dot operator access to anything in `settings_dict`.
 
-    :return: Secret and key have length of at least one.
+    :param item: name of attribute to return from `settings_dict`.
+    :return: value of attribute in dictionary. Either string or integer.
     """
-    return len(self.key) > 0 and len(self.secret) > 0
+    return self.settings_dict[item]
 
 
 class SlackConfig(APIConfigBase):
-  def __init__(self, key: str, channel: str):
-    """Initializes key, secret, and notification channel option for Slack API. Passes `self.key` and
-    `self.secret` to APIConfigBase.
-
-    :param key: Slack API client key.
-    :param secret: Slack API client secret.
-    :param channel: Channel to report the upload in.
-    """
-    super().__init__(key, "")
-    self.channel = channel
-
   @staticmethod
   def __class__():
     """Implements __class__ property.
 
     :return: Name of class
     """
-    return 'Slack'
+    return 'slack'
 
 
 class ZoomConfig(APIConfigBase):
-  def __init__(self,
-               key: str,
-               secret: str,
-               username: str,
-               password: str,
-               delete: bool,
-               meetings: list):
-    """Initializes key, secret, and delete recording option for Zoom API. Passes `self.key` and
-    `self.secret` to APIConfigBase.
-
-    :param key: Zoom API client key.
-    :param secret: Zoom API client secret.
-    :param username: Username for the download user (email).
-    :param password: Password for the download user.
-    :param delete: Option whether to delete recording or not.
-    """
-    super().__init__(key, secret)
-    self.username = username
-    self.password = password
-    self.delete = delete
-    self.meetings = meetings
-
   @staticmethod
   def __class__():
     """Implements __class__ property.
@@ -74,26 +42,15 @@ class ZoomConfig(APIConfigBase):
 
 
 class DriveConfig(APIConfigBase):
-  def __init__(self, credentials: str, secret: str, folder_id: str):
-    """Initializes credentials file, secrets file, and folder ID values for Google Drive API. Passes
-    `self.secret` to APIConfigBase.
-
-    :param credentials: File used by Drive API to authenticate client.
-    :param secret: Drive API client secret file.
-    :param folder_id: ID of folder to upload recordings to.
-    """
-    super().__init__("", secret)
-    self.credentials = credentials
-    self.folder_id = folder_id
-
   def validate(self) -> bool:
     """Checks to see if all parameters are valid.
 
     :return: Checks to make sure that the secret file exists and the folder ID is not empty or
     otherwise invalid.
     """
-    files_exist = os.path.exists(self.secret)
-    valid_folder_id = self.folder_id is not None and len(self.folder_id) > 0
+    files_exist = os.path.exists(self.settings_dict['secret'])
+    valid_folder_id = self.settings_dict['secret'] is not None \
+                      and len(self.settings_dict['dict']) > 0
 
     return files_exist and valid_folder_id
 
@@ -103,29 +60,20 @@ class DriveConfig(APIConfigBase):
 
     :return: Name of class
     """
-    return 'Drive'
+    return 'drive'
 
 
-class SystemConfig:
-  def __init__(self, target_folder: str, port: int):
-    """Initializes download folder and port attributes.
-
-    :param target_folder: folder to download temporary recordings.
-    :param port: port on which to run the application.
-    """
-    self.target_folder = target_folder
-    self.port = port
-
+class SystemConfig(APIConfigBase):
   def validate(self) -> bool:
     """Returns true if the target folder exists and the port number is greater than 1000.
 
     :return: True if the conditions listed about evaluate individually to true.
     """
-    return os.path.isdir(self.target_folder) and self.port > 1000
+    return os.path.isdir(self.settings_dict['target_folder']) and self.settings_dict['port'] > 1000
 
   @staticmethod
   def __class__():
-    return 'System'
+    return 'internal'
 
 
 class ConfigInterface:
@@ -160,25 +108,10 @@ class ConfigInterface:
     """
     conf_dict = self.__load_config()
 
-    zoom = conf_dict["zoom"]
-    self.zoom_conf = ZoomConfig(zoom['key'],
-                                zoom['secret'],
-                                zoom['username'],
-                                zoom['password'],
-                                zoom['delete'],
-                                zoom['meetings'])
-
-    drive = conf_dict["drive"]
-    self.drive_conf = DriveConfig(drive['credentials_json'],
-                                  drive['client_secret_json'],
-                                  drive['folder_id'])
-    slack = conf_dict["slack"]
-    self.slack_conf = SlackConfig(slack["key"],
-                                  slack["channel"])
-
-    system = conf_dict["internals"]
-    self.local_conf = SystemConfig(system['target_folder'],
-                                   system['port'])
+    self.zoom_conf = ZoomConfig(conf_dict['zoom'])
+    self.drive_conf = DriveConfig(conf_dict['drive'])
+    self.slack_conf = SlackConfig(conf_dict['slack'])
+    self.local_conf = SystemConfig(conf_dict['internals'])
 
     conf_tuple = (self.zoom_conf, self.drive_conf, self.slack_conf, self.local_conf)
 
