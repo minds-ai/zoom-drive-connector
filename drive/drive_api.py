@@ -11,12 +11,11 @@ class DriveAPI:
   def __init__(self, base_path: str, credentials: str, secrets: str, folder_id: str):
     """Initializes instance of DriveAPI class.
 
-        :param base_path: Path to temporary folder where recordings will be stored.
-        :param credentials: Path to credentials.json.
-        :param secrets: Path to secrets.json.
-        :param folder_id: Target Google Drive folder ID to upload recordings to.
-        """
-
+    :param base_path: Path to temporary folder where recordings will be stored.
+    :param credentials: Path to credentials.json.
+    :param secrets: Path to secrets.json.
+    :param folder_id: Target Google Drive folder ID to upload recordings to.
+    """
     if base_path.endswith('/'):
       # Remove any trailing forward slashes in path to prevent path errors.
       self._base_path = base_path[:-1]
@@ -34,8 +33,8 @@ class DriveAPI:
 
   def setup(self):
     """Triggers the OAuth2 setup flow for Google API endpoints. Requires the ability to open
-        a link within a web browser in order to work.
-        """
+    a link within a web browser in order to work.
+    """
     store = file.Storage(self._credentials)
     creds = store.get()
 
@@ -48,10 +47,10 @@ class DriveAPI:
   def upload_file(self, filename: str, name: str) -> str:
     """Uploads the given file to the specified folder id in Google Drive.
 
-        :param filename: Name of the file within the storage folder to upload to Drive.
-        :param name: Final name of the file
-        :return: The url of the file in Google Drive.
-        """
+    :param filename: Name of the file within the storage folder to upload to Drive.
+    :param name: Final name of the file
+    :return: The url of the file in Google Drive.
+    """
 
     if self._service is None:
       # Raise an exception if setup() hasn't been run.
