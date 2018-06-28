@@ -1,0 +1,9 @@
+# Only use if at the root of the repository.
+root = true
+ 
+[*.py] # Match python files.
+indent_style = space
+indent_size = 2
+charset = utf-8
+trim_trailing_whitespace = true # Remove whitespace from line endings.
+insert_final_newline = true # Required for Python code style.
