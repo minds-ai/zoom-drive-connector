@@ -15,10 +15,10 @@ class ZoomAPI:
   def __init__(self, config: ZoomConfig, fs_target: str = '/tmp'):
     """Class initialization; sets client key, secret, and download folder path.
 
-        :param key: Zoom client key.
-        :param secret: Zoom client secret.
-        :param fs_target: Path to download folder. Default is /tmp.
-        """
+    :param key: Zoom client key.
+    :param secret: Zoom client secret.
+    :param fs_target: Path to download folder. Default is /tmp.
+    """
     self.config = config
     self.fs_target = fs_target
 
@@ -28,19 +28,19 @@ class ZoomAPI:
 
   def generate_jwt(self) -> str:
     """Generates the JSON web token used for authenticating with Zoom. Sends client key
-        and expiration time encoded with the secret key.
-        """
+    and expiration time encoded with the secret key.
+    """
     payload = {'iss': self.config.key, 'exp': int(time.time()) + self.timeout}
     return jwt.encode(payload, self.config.secret, algorithm='HS256')
 
   def delete_recording(self, meeting_id: str, recording_id: str, auth: str):
     """Given a specific meeting room ID, this function trashes all recordings associated with
-        that room ID.
+    that room ID.
 
-        :param meeting_id: UUID associated with a meeting room.
-        :param recording_id: The ID of the recording to delete.
-        :param auth: JWT token.
-        """
+    :param meeting_id: UUID associated with a meeting room.
+    :param recording_id: The ID of the recording to delete.
+    :param auth: JWT token.
+    """
     zoom_url = 'https://api.zoom.us/v2/meetings/{id}/recordings/{rid}'.format(
         id=meeting_id, rid=recording_id)
     res = requests.delete(
@@ -54,13 +54,14 @@ class ZoomAPI:
       # Handle error where content may have been removed already.
       raise ZoomAPIException(409, 'Resource Conflict', res.request, 'File deleted already.')
 
-  def get_recording_url(self, meeting_id: str, auth: str) -> (datetime.datetime, str):
+  def get_recording_url(self, meeting_id: str, auth: str) -> (datetime.datetime, str, str):
     """Given a specific meeting room ID and auth token, this function gets the download url
-        for most recent recording in the given meeting room.
+    for most recent recording in the given meeting room.
 
-        :param meeting_id: UUID associated with a meeting room.
-        :param auth: Encoded JWT authorization token
-        """
+    :param meeting_id: UUID associated with a meeting room.
+    :param auth: Encoded JWT authorization token
+    :return: tuple containing the date of the recording, the ID of the recording, and the video url.
+    """
     zoom_url = 'https://api.zoom.us/v2/meetings/{id}/recordings'.format(id=meeting_id)
     zoom_request = requests.get(zoom_url, params={"access_token": auth})
 
@@ -87,11 +88,9 @@ class ZoomAPI:
   def download_recording(self, url: str) -> str:
     """Downloads video file from Zoom to local folder.
 
-        :param url: Download URL for meeting recording.
-
-        Return:
-            Path to the recording
-        """
+    :param url: Download URL for meeting recording.
+    :return: Path to the recording
+    """
 
     session = requests.Session()
     session.headers.update({'content-type': 'application/x-www-form-urlencoded'})
@@ -109,13 +108,14 @@ class ZoomAPI:
       shutil.copyfileobj(zoom_request.raw, source)  # Copy raw file data to local file.
     return outfile
 
-  def pull_file_from_zoom(self, meeting_id: str, rm: bool = True) -> bool:
+  def pull_file_from_zoom(self, meeting_id: str, rm: bool = True) -> (bool, bool):
     """Interface for downloading recordings from Zoom. Optionally trashes recorded file on Zoom.
-        Returns true if all processes completed successfully.
+    Returns true if all processes completed successfully.
 
-        :param meeting_id: UUID for meeting room where recording was just completed.
-        :param rm: If true is passed (default) then file is trashed on Zoom.
-        """
+    :param meeting_id: UUID for meeting room where recording was just completed.
+    :param rm: If true is passed (default) then file is trashed on Zoom.
+    :return: tuple of booleans that indicates that bother operations completed sucessfully.
+    """
     try:
       # Generate token and Authorization header.
       zoom_token = self.generate_jwt()

@@ -7,9 +7,8 @@ class SlackAPI:
   def __init__(self, config: SlackConfig):
     """Class initialization;
 
-        :param config: Slack configuration object.
-
-        """
+    :param config: Slack configuration object.
+    """
     self.config = config
     self.sc = SlackClient(self.config.key)
 
