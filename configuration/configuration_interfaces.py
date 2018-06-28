@@ -6,29 +6,29 @@ class APIConfigBase:
   def __init__(self, key: str, secret: str):
     """Initializes key and secret values.
 
-        :param key: API client key.
-        :param secret: API client secret.
-        """
+    :param key: API client key.
+    :param secret: API client secret.
+    """
     self.key = key
     self.secret = secret
 
   def validate(self) -> bool:
     """Checks to see if key and secret values are not empty.
 
-        :return: Secret and key have length of at least one.
-        """
+    :return: Secret and key have length of at least one.
+    """
     return len(self.key) > 0 and len(self.secret) > 0
 
 
 class SlackConfig(APIConfigBase):
   def __init__(self, key: str, channel: str):
     """Initializes key, secret, and notification channel option for Slack API. Passes `self.key` and
-        `self.secret` to APIConfigBase.
+    `self.secret` to APIConfigBase.
 
-        :param key: Slack API client key.
-        :param secret: Slack API client secret.
-        :param channel: Channel to report the upload in.
-        """
+    :param key: Slack API client key.
+    :param secret: Slack API client secret.
+    :param channel: Channel to report the upload in.
+    """
     super().__init__(key, "")
     self.channel = channel
 
@@ -36,8 +36,8 @@ class SlackConfig(APIConfigBase):
   def __class__():
     """Implements __class__ property.
 
-        :return: Name of class
-        """
+    :return: Name of class
+    """
     return 'Slack'
 
 
@@ -50,14 +50,14 @@ class ZoomConfig(APIConfigBase):
                delete: bool,
                meetings: list):
     """Initializes key, secret, and delete recording option for Zoom API. Passes `self.key` and
-        `self.secret` to APIConfigBase.
+    `self.secret` to APIConfigBase.
 
-        :param key: Zoom API client key.
-        :param secret: Zoom API client secret.
-        :param username: Username for the download user (email).
-        :param password: Password for the download user.        
-        :param delete: Option whether to delete recording or not.
-        """
+    :param key: Zoom API client key.
+    :param secret: Zoom API client secret.
+    :param username: Username for the download user (email).
+    :param password: Password for the download user.
+    :param delete: Option whether to delete recording or not.
+    """
     super().__init__(key, secret)
     self.username = username
     self.password = password
