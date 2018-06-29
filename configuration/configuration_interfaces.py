@@ -12,6 +12,13 @@ class APIConfigBase:
     """
     self.settings_dict = settings_dict
 
+  def validate(self) -> bool:
+    """Dummy validation method.
+
+    :return: Always returns true.
+    """
+    return True
+
   def __getattr__(self, item) -> Union[str, int]:
     """Allows for dot operator access to anything in `settings_dict`.
 
@@ -19,6 +26,15 @@ class APIConfigBase:
     :return: value of attribute in dictionary. Either string or integer.
     """
     return self.settings_dict[item]
+
+  @classmethod
+  def factory_registrar(cls, name) -> bool:
+    """Returns true if the current class is the proper registrar for the corresponding config class.
+
+    :param name: name of class that should be registered.
+    :return: if __class__ matched the passed in class name.
+    """
+    return cls.__class__ == name
 
 
 class SlackConfig(APIConfigBase):
@@ -81,13 +97,13 @@ class ConfigInterface:
     """Initializes and loads configuration file to Python object.
     """
     self.file = file
-    self.config_tuple = None
+    self.configuration_dict = dict()
 
     # Load configuration
-    self.__create_interfaces()
+    self.__interface_factory()
 
   def __load_config(self) -> dict:
-    """Loads YAML configuration file to Python object. Does some basic error checking to help
+    """Loads YAML configuration file to Python dictionary. Does some basic error checking to help
     with debugging bad configuration files.
     """
     try:
@@ -102,22 +118,21 @@ class ConfigInterface:
 
       raise SystemExit  # Crash program
 
-  def __create_interfaces(self):
-    """Loads configuration file using `self.__load_config` and generates tuple containing
-    classes specific to each top level section.
+  def __interface_factory(self):
+    """Loads configuration file using `self.__load_config` and iterates through each top-level key
+    and instantiates the corresponding configuration class depending on the name of the key. Each
+    class then has it's validation method run to check for any errors.
     """
-    conf_dict = self.__load_config()
+    dict_from_yaml = self.__load_config()
 
-    self.zoom_conf = ZoomConfig(conf_dict['zoom'])
-    self.drive_conf = DriveConfig(conf_dict['drive'])
-    self.slack_conf = SlackConfig(conf_dict['slack'])
-    self.local_conf = SystemConfig(conf_dict['internals'])
+    # Iterate through all keys and their corresponding values.
+    for key, value in dict_from_yaml.items():
+      # Iterator for subclasses of `APIConfigBase`.
+      for cls in APIConfigBase.__subclasses__():
+        if cls.factory_registrar(key):
+          self.configuration_dict[key] = cls(value)
 
-    conf_tuple = (self.zoom_conf, self.drive_conf, self.slack_conf, self.local_conf)
-
-    for c in conf_tuple:
-      # Validate each item in `conf_tuple`.
-      if not c.validate():
-        raise RuntimeError('Validation of {} failed'.format(c.__class__()))
-
-    self.config_tuple = conf_tuple
+    # Run validation for each item in the dictionary.
+    for value in self.configuration_dict.values():
+      if not value.validate():
+        raise RuntimeError(f'Configuration for section {value.__class__} failed validation step.')
