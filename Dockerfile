@@ -1,5 +1,6 @@
 FROM ubuntu:latest
-MAINTAINER Jeroen "jeroen@minds.ai"
+LABEL MAINTAINER.1="Jeroen Bedorf <jeroen@minds.ai>" \
+      MAINTAINER.2="Nick Pleatsikas <nick@minds.ai>"
 
 # Update the system
 RUN apt-get update \
@@ -9,7 +10,6 @@ RUN apt-get update \
   && pip3 install --upgrade pip
 
 ENTRYPOINT ["python3"]
-
 
 COPY . /app
 WORKDIR /app

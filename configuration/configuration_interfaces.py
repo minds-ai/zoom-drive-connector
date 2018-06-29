@@ -136,3 +136,12 @@ class ConfigInterface:
     for value in self.configuration_dict.values():
       if not value.validate():
         raise RuntimeError(f'Configuration for section {value.__class__} failed validation step.')
+
+  def __getattr__(self, item) -> APIConfigBase:
+    """Returns the configuration class corresponding to given name. Allows "dot" access to items
+    in the configuration_dict.
+
+    :param item: name of the key in `configuration_dict`.
+    :return: the value corresponding to the key specified by the parameter `item`.
+    """
+    return self.configuration_dict[item]
