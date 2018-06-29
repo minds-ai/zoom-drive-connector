@@ -8,19 +8,19 @@ import jwt
 import requests
 
 from zoom import ZoomAPIException
-from configuration.configuration_interfaces import ZoomConfig
+from configuration import ZoomConfig
+from configuration import SystemConfig
 
 
 class ZoomAPI:
-  def __init__(self, config: ZoomConfig, fs_target: str = '/tmp'):
+  def __init__(self, zoom_config: ZoomConfig, sys_config: SystemConfig):
     """Class initialization; sets client key, secret, and download folder path.
 
-    :param key: Zoom client key.
-    :param secret: Zoom client secret.
-    :param fs_target: Path to download folder. Default is /tmp.
+    :param zoom_config: configuration class containing all relevant parameters for Zoom API.
+    :param sys_config: configuration class containing target folder where to download contains.
     """
-    self.config = config
-    self.fs_target = fs_target
+    self.zoom_config = zoom_config
+    self.sys_config = sys_config
 
     # Information required to login to allow downloads
     self.zoom_signin_url = "https://api.zoom.us/signin"
@@ -30,8 +30,8 @@ class ZoomAPI:
     """Generates the JSON web token used for authenticating with Zoom. Sends client key
     and expiration time encoded with the secret key.
     """
-    payload = {'iss': self.config.key, 'exp': int(time.time()) + self.timeout}
-    return jwt.encode(payload, self.config.secret, algorithm='HS256')
+    payload = {'iss': self.zoom_config.key, 'exp': int(time.time()) + self.timeout}
+    return jwt.encode(payload, self.zoom_config.secret, algorithm='HS256')
 
   def delete_recording(self, meeting_id: str, recording_id: str, auth: str):
     """Given a specific meeting room ID, this function trashes all recordings associated with
@@ -96,19 +96,19 @@ class ZoomAPI:
     session.headers.update({'content-type': 'application/x-www-form-urlencoded'})
 
     response = session.post(
-        self.zoom_signin_url, data={'email': self.config.username,
-                                  'password': self.config.password})
+        self.zoom_signin_url, data={'email': self.zoom_config.username,
+                                    'password': self.zoom_config.password})
 
     response = response  # Make pylint happy
     filename = url.split('/')[-1]
     zoom_request = session.get(url, stream=True)
 
-    outfile = os.path.join(self.fs_target, filename + ".mp4")
+    outfile = os.path.join(self.sys_config.target_folder, filename + ".mp4")
     with open(outfile, 'wb') as source:
       shutil.copyfileobj(zoom_request.raw, source)  # Copy raw file data to local file.
     return outfile
 
-  def pull_file_from_zoom(self, meeting_id: str, rm: bool = True) -> (bool, bool):
+  def pull_file_from_zoom(self, meeting_id: str, rm: bool = True) -> tuple:
     """Interface for downloading recordings from Zoom. Optionally trashes recorded file on Zoom.
     Returns true if all processes completed successfully.
 
