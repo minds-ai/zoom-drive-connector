@@ -1,8 +1,8 @@
 pyjwt
 requests
 pyyaml
-flask
 slackclient
 python-dateutil
 schedule
 google-api-python-client
+httplib2
