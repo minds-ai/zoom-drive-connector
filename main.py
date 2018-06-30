@@ -9,6 +9,13 @@ import configuration as config
 
 
 def download(zoom_conn: zoom.ZoomAPI, zoom_conf: config.ZoomConfig) -> list:
+  """Downloads all available recordings from Zoom and returns a list of dicts with all relevant
+  information about the recording.
+
+  :param zoom_conn: API object instance for Zoom.
+  :param zoom_conf: configuration instance containing all Zoom API settings.
+  :return: list of dictionaries containing meeting recording information.
+  """
   result = []
 
   for meeting in zoom_conf.meetings:
@@ -22,10 +29,21 @@ def download(zoom_conn: zoom.ZoomAPI, zoom_conf: config.ZoomConfig) -> list:
   return result
 
 
-def upload(files: list, drive_conn: drive.DriveAPI):
+def upload_and_notify(files: list, drive_conn: drive.DriveAPI, slack_conn: slack.SlackAPI):
+  """Uploads a list of files from the local filesystem to Google Drive.
+
+  :param files: list of dictionaries containing file information.
+  :param drive_conn: configuration instance containing all Google Drive API settings.
+  """
   for file in files:
     try:
-      file["url"] = drive_conn.upload_file(file["file"], file["name"])
+      # Get url from upload function.
+      file_url = drive_conn.upload_file(file["file"], file["name"])
+
+      # Only post message if the upload worked.
+      message = f'The recording _{file["meeting"]}_ ' \
+                f'meeting on _{file["date"]}_ is <{file_url}| now available>.'
+      slack_conn.post_message(message)
     except drive.DriveAPIException as e:
       print("Upload failed")
       raise e
@@ -33,25 +51,25 @@ def upload(files: list, drive_conn: drive.DriveAPI):
     os.remove(file["file"])
 
 
-def notify(files: list, slack_conn: slack.SlackAPI):
-  for file in files:
-    msg = "The recording for the _{}_ meeting on _{}_ is <{}| now available>".format(
-        file["meeting"], file["date"].strftime("%B %d, %Y"), file["url"])
-    slack_conn.post_message(msg)
-
-
 def all_steps(zoom_conn: zoom.ZoomAPI,
               slack_conn: slack.SlackAPI,
               drive_conn: drive.DriveAPI,
               zoom_config: config.ZoomConfig):
+  """Downloads all files from Zoom and uploads them to Drive. Notifies people in the specified Slack
+  channel.
+
+  :param zoom_conn: API object instance for Zoom.
+  :param slack_conn: API object instance for Slack.
+  :param drive_conn: API object instance for Google Drive.
+  :param zoom_config: configuration instance containing all Zoom API settings.
+  """
   downloaded_files = download(zoom_conn, zoom_config)
 
   for file in downloaded_files:
     print(f'Got {file["file"]}')
     print(file)
 
-  upload(downloaded_files, drive_conn)
-  notify(downloaded_files, slack_conn)
+  upload_and_notify(downloaded_files, drive_conn, slack_conn)
 
 
 if __name__ == '__main__':
@@ -59,9 +77,9 @@ if __name__ == '__main__':
   app_config = config.ConfigInterface('config.yaml')
 
   # Configure each API service module.
-  zoom_api = zoom.ZoomAPI(app_config.zoom, app_config.internal)
+  zoom_api = zoom.ZoomAPI(app_config.zoom, app_config.internals)
   slack_api = slack.SlackAPI(app_config.slack)
-  drive_api = drive.DriveAPI(app_config.drive, app_config.internal)  # This should open a prompt.
+  drive_api = drive.DriveAPI(app_config.drive, app_config.internals)  # This should open a prompt.
 
   # Run the application on a schedule.
   schedule.every(10).minutes.do(all_steps, zoom_api, slack_api, drive_api, app_config.zoom)
