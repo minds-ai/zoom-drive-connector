@@ -109,3 +109,6 @@ ENV/
 # Google Drive Secrets.
 credentials.json
 client_secret.json
+
+# Application configuration.
+config.yaml
