@@ -28,68 +28,48 @@ class APIConfigBase:
     return self.settings_dict[item]
 
   @classmethod
-  def factory_registrar(cls, name) -> bool:
+  def factory_registrar(cls, name):
     """Returns true if the current class is the proper registrar for the corresponding config class.
 
     :param name: name of class that should be registered.
     :return: if __class__ matched the passed in class name.
     """
-    return cls.__class__ == name
+    return name == cls._classname
 
 
 class SlackConfig(APIConfigBase):
-  @staticmethod
-  def __class__():
-    """Implements __class__ property.
-
-    :return: Name of class
-    """
-    return 'slack'
+  _classname = 'slack'
 
 
 class ZoomConfig(APIConfigBase):
-  @staticmethod
-  def __class__():
-    """Implements __class__ property.
-
-        :return: Name of class
-        """
-    return 'Zoom'
+  _classname = 'zoom'
 
 
 class DriveConfig(APIConfigBase):
+  _classname = 'drive'
+
   def validate(self) -> bool:
     """Checks to see if all parameters are valid.
 
     :return: Checks to make sure that the secret file exists and the folder ID is not empty or
     otherwise invalid.
     """
-    files_exist = os.path.exists(self.settings_dict['secret'])
-    valid_folder_id = self.settings_dict['secret'] is not None \
-                      and len(self.settings_dict['dict']) > 0
+    files_exist = os.path.exists(self.settings_dict['client_secret_json'])
+    valid_folder_id = self.settings_dict['folder_id'] is not None \
+                      and len(self.settings_dict['folder_id']) > 0
 
     return files_exist and valid_folder_id
 
-  @staticmethod
-  def __class__():
-    """Implements __class__ property.
-
-    :return: Name of class
-    """
-    return 'drive'
-
 
 class SystemConfig(APIConfigBase):
+  _classname = 'internals'
+
   def validate(self) -> bool:
     """Returns true if the target folder exists and the port number is greater than 1000.
 
     :return: True if the conditions listed about evaluate individually to true.
     """
     return os.path.isdir(self.settings_dict['target_folder']) and self.settings_dict['port'] > 1000
-
-  @staticmethod
-  def __class__():
-    return 'internal'
 
 
 class ConfigInterface:
