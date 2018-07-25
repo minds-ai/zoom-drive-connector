@@ -1,4 +1,4 @@
-FROM ubuntu:latest
+FROM ubuntu:18.04
 LABEL MAINTAINER.1="Jeroen Bedorf <jeroen@minds.ai>" \
       MAINTAINER.2="Nick Pleatsikas <nick@minds.ai>"
 
