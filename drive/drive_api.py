@@ -51,7 +51,8 @@ class DriveAPI:
       # Raise an exception if setup() hasn't been run.
       raise DriveAPIException(name="Service error", reason="setup() method not called.")
 
-    complete_path = '{0}/{1}'.format(self.sys_config.target_folder, filename)
+    #complete_path = '{0}/{1}'.format(self.sys_config.target_folder, filename)
+    complete_path = filename  # Not using the above join as the filename has the path included
     if not filename or not os.path.exists(complete_path):
       # Raise an exception if the specified file doesn't exist.
       raise DriveAPIException(
