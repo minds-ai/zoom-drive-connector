@@ -1,6 +1,6 @@
 import os
 
-import httplib2
+import httplib2shim
 import apiclient
 
 from oauth2client import file, client, tools
@@ -37,7 +37,7 @@ class DriveAPI:
       flow = client.flow_from_clientsecrets(self.drive_config.client_secret_json, self._scopes)
       creds = tools.run_flow(flow, store)
 
-    self._service = apiclient.discovery.build('drive', 'v3', http=creds.authorize(httplib2.Http()))
+    self._service = apiclient.discovery.build('drive', 'v3', http=creds.authorize(httplib2shim.Http()))
 
   def upload_file(self, filename: str, name: str) -> str:
     """Uploads the given file to the specified folder id in Google Drive.

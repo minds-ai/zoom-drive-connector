@@ -24,6 +24,8 @@ def download(zoom_conn: zoom.ZoomAPI, zoom_conf: config.ZoomConfig) -> list:
       print("From {} downloaded {}".format(meeting, storage_url))
       name = "{}-{}.mp4".format(date.strftime("%Y%m%d"), meeting["name"])
 
+      date = date.strftime("%B %d, %Y")
+
       result.append({"meeting": meeting["name"], "file": storage_url, "name": name, "date": date})
 
   return result
@@ -82,6 +84,7 @@ if __name__ == '__main__':
   drive_api = drive.DriveAPI(app_config.drive, app_config.internals)  # This should open a prompt.
 
   # Run the application on a schedule.
+  all_steps(zoom_api, slack_api, drive_api, app_config.zoom)
   schedule.every(10).minutes.do(all_steps, zoom_api, slack_api, drive_api, app_config.zoom)
   while True:
     schedule.run_pending()
