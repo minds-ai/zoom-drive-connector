@@ -93,6 +93,7 @@ class ConfigInterface:
       print('Error in YAML file {f}'.format(f=self.file))
 
       # If the error can be identified, print it to the console.
+      # pylint: disable=no-member
       if hasattr(ye, 'problem_mark'):
         print('Position ({line}, {col})'.format(line=ye.problem_mark + 1, col=ye.problem_mark + 1))
 
