@@ -76,7 +76,7 @@ def all_steps(zoom_conn: zoom.ZoomAPI,
 
 if __name__ == '__main__':
   # App configuration.
-  app_config = config.ConfigInterface('config.yaml')
+  app_config = config.ConfigInterface(os.getenv("CONFIG", "/conf/config.yaml"))
 
   # Configure each API service module.
   zoom_api = zoom.ZoomAPI(app_config.zoom, app_config.internals)

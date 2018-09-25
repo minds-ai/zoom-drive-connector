@@ -9,6 +9,9 @@ RUN apt-get update \
   && ln -s /usr/bin/python3 python \
   && pip3 install --upgrade pip
 
+VOLUME ["/conf"]
+ENV CONFIG="/conf/config.yaml"
+
 ENTRYPOINT ["python3"]
 
 COPY . /app
