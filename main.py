@@ -49,7 +49,7 @@ def upload_and_notify(files: list, drive_conn: drive.DriveAPI, slack_conn: slack
     except drive.DriveAPIException as e:
       print("Upload failed")
       raise e
-    # Remove the file after uploading so we do not run out of disk space in our container
+    # Remove the file after uploading so we do not run out of disk space in our container.
     os.remove(file["file"])
 
 

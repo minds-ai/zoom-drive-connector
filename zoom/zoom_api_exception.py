@@ -18,18 +18,23 @@ class ZoomAPIException(Exception):
 
   def __str__(self) -> str:
     """Returns printable string with formatted exception message.
-
     Usage: print(ZoomAPIException)
+
+    :return: formatted message containing exception information.
     """
     return 'HTTP_STATUS: {c}-{n}, {m}'.format(c=self.status_code, n=self.name, m=self.message)
 
   def __repr__(self) -> str:
     """Returns class type when repr method called.
+
+    :return: string containing exception class name.
     """
     return 'ZoomAPIException()'
 
   @property
   def http_method(self):
     """Returns request method.
+
+    :return: String containing HTTP request method (GET, DELETE, etc.).
     """
     return self.method.method
