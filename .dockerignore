@@ -1,0 +1,23 @@
+# Ignore app configuration files
+*.yaml*
+
+# Ignore git specific files
+.git/
+.gitignore
+
+# Ignore linting and codestyle configs
+.pylintrc
+.pycodestyle
+
+# Ignore shell scripts
+*.sh
+
+# Ignore environment files for Conda
+environment.yml
+
+# Ignore Docker-related files
+.dockerignore
+Dockerfile
+
+# Other files that should not be bundled
+**/*.md
