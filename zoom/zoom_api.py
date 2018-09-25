@@ -3,9 +3,9 @@ import os
 import time
 import shutil
 
+import requests
 import dateutil.parser
 import jwt
-import requests
 
 from zoom import ZoomAPIException
 from configuration import ZoomConfig
@@ -33,7 +33,8 @@ class ZoomAPI:
     payload = {'iss': self.zoom_config.key, 'exp': int(time.time()) + self.timeout}
     return jwt.encode(payload, self.zoom_config.secret, algorithm='HS256')
 
-  def delete_recording(self, meeting_id: str, recording_id: str, auth: str):
+  @staticmethod
+  def delete_recording(meeting_id: str, recording_id: str, auth: str):
     """Given a specific meeting room ID, this function trashes all recordings associated with
     that room ID.
 
@@ -95,11 +96,10 @@ class ZoomAPI:
     session = requests.Session()
     session.headers.update({'content-type': 'application/x-www-form-urlencoded'})
 
-    response = session.post(
+    session.post(
         self.zoom_signin_url, data={'email': self.zoom_config.username,
                                     'password': self.zoom_config.password})
 
-    response = response  # Make pylint happy
     filename = url.split('/')[-1]
     zoom_request = session.get(url, stream=True)
 
