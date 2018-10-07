@@ -65,11 +65,11 @@ class SystemConfig(APIConfigBase):
   _classname = 'internals'
 
   def validate(self) -> bool:
-    """Returns true if the target folder exists and the port number is greater than 1000.
+    """Returns true if the target folder exists.
 
-    :return: True if the conditions listed about evaluate individually to true.
+    :return: True if the condition listed about evaluates to true.
     """
-    return os.path.isdir(self.settings_dict['target_folder']) and self.settings_dict['port'] > 1000
+    return os.path.isdir(self.settings_dict['target_folder'])
 
 
 class ConfigInterface:
