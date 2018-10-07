@@ -51,12 +51,12 @@ class DriveAPI:
 
     if self._service is None:
       # Raise an exception if setup() hasn't been run.
-      raise DriveAPIException(name="Service error", reason="setup() method not called.")
+      raise DriveAPIException(name='Service error', reason='setup() method not called.')
 
     if not file_path or not os.path.exists(file_path):
       # Raise an exception if the specified file doesn't exist.
       raise DriveAPIException(
-          name="File error", reason='{f} could not be found.'.format(f=file_path))
+          name='File error', reason='{f} could not be found.'.format(f=file_path))
 
     # Google Drive file metadata
     metadata = {'name': name, 'parents': [self.drive_config.folder_id]}

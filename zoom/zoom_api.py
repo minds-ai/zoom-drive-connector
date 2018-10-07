@@ -23,7 +23,7 @@ class ZoomAPI:
     self.sys_config = sys_config
 
     # Information required to login to allow downloads
-    self.zoom_signin_url = "https://api.zoom.us/signin"
+    self.zoom_signin_url = 'https://api.zoom.us/signin'
     self.timeout = 1800  # Default expiration time is 30 minutes.
 
   def generate_jwt(self) -> str:
@@ -44,9 +44,8 @@ class ZoomAPI:
     """
     zoom_url = 'https://api.zoom.us/v2/meetings/{id}/recordings/{rid}'.format(
         id=meeting_id, rid=recording_id)
-    res = requests.delete(
-        zoom_url, params={"access_token": auth,
-                          "action": "trash"})  # Note trash, not delete
+    res = requests.delete(zoom_url,
+                          params={'access_token': auth, 'action': 'trash'})  # trash, not delete
 
     if res.status_code == 401:
       # Handle unauthenticated requests.
@@ -64,7 +63,7 @@ class ZoomAPI:
     :return: tuple containing the date of the recording, the ID of the recording, and the video url.
     """
     zoom_url = 'https://api.zoom.us/v2/meetings/{id}/recordings'.format(id=meeting_id)
-    zoom_request = requests.get(zoom_url, params={"access_token": auth})
+    zoom_request = requests.get(zoom_url, params={'access_token': auth})
 
     if zoom_request.status_code == 401:
       # Handle unauthenticated requests.
@@ -102,7 +101,7 @@ class ZoomAPI:
     filename = url.split('/')[-1]
     zoom_request = session.get(url, stream=True)
 
-    outfile = os.path.join(self.sys_config.target_folder, filename + ".mp4")
+    outfile = os.path.join(self.sys_config.target_folder, filename + '.mp4')
     with open(outfile, 'wb') as source:
       shutil.copyfileobj(zoom_request.raw, source)  # Copy raw file data to local file.
     return outfile
