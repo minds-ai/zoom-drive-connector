@@ -19,15 +19,15 @@ def download(zoom_conn: zoom.ZoomAPI, zoom_conf: config.ZoomConfig) -> list:
   result = []
 
   for meeting in zoom_conf.meetings:
-    res = zoom_conn.pull_file_from_zoom(meeting["id"], rm=zoom_conf.delete)
+    res = zoom_conn.pull_file_from_zoom(meeting['id'], rm=zoom_conf.delete)
     if (res['success']) and ('url' in res):
-      print("From {} downloaded {}".format(meeting, res['filename']))
-      name = "{}-{}.mp4".format(res['date'].strftime("%Y%m%d"), meeting["name"])
+      print('From {} downloaded {}'.format(meeting, res['filename']))
+      name = '{}-{}.mp4'.format(res['date'].strftime('%Y%m%d'), meeting['name'])
 
-      result.append({"meeting": meeting["name"],
-                     "file": res['filename'],
-                     "name": name,
-                     "date": res['date'].strftime("%B %d, %Y")})
+      result.append({'meeting': meeting['name'],
+                     'file': res['filename'],
+                     'name': name,
+                     'date': res['date'].strftime('%B %d, %Y')})
 
   return result
 
@@ -41,17 +41,19 @@ def upload_and_notify(files: list, drive_conn: drive.DriveAPI, slack_conn: slack
   for file in files:
     try:
       # Get url from upload function.
-      file_url = drive_conn.upload_file(file["file"], file["name"])
+      file_url = drive_conn.upload_file(file['file'], file['name'])
 
       # Only post message if the upload worked.
-      message = f'The recording _{file["meeting"]}_ ' \
-                f'meeting on _{file["date"]}_ is <{file_url}| now available>.'
+      message = 'The recording _{}_ meeting on _{}_ is <{}| now available>.'.format(
+        file['meeting'],
+        file['date'],
+        file_url)
       slack_conn.post_message(message)
     except drive.DriveAPIException as e:
-      print("Upload failed")
+      print('Upload failed')
       raise e
     # Remove the file after uploading so we do not run out of disk space in our container.
-    os.remove(file["file"])
+    os.remove(file['file'])
 
 
 def all_steps(zoom_conn: zoom.ZoomAPI,
@@ -69,7 +71,7 @@ def all_steps(zoom_conn: zoom.ZoomAPI,
   downloaded_files = download(zoom_conn, zoom_config)
 
   for file in downloaded_files:
-    print(f'Got {file["file"]}')
+    print('Got {}'.format(file['file']))
     print(file)
 
   upload_and_notify(downloaded_files, drive_conn, slack_conn)
@@ -77,7 +79,7 @@ def all_steps(zoom_conn: zoom.ZoomAPI,
 
 if __name__ == '__main__':
   # App configuration.
-  app_config = config.ConfigInterface(os.getenv("CONFIG", "/conf/config.yaml"))
+  app_config = config.ConfigInterface(os.getenv('CONFIG', '/conf/config.yaml'))
 
   # Configure each API service module.
   zoom_api = zoom.ZoomAPI(app_config.zoom, app_config.internals)

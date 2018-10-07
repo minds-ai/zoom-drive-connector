@@ -21,4 +21,4 @@ class SlackAPI:
     """
     if not channel:
       channel = self.config.channel
-    self.sc.api_call("chat.postMessage", channel=channel, text=text)
+    self.sc.api_call('chat.postMessage', channel=channel, text=text)
