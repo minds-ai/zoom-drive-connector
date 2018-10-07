@@ -59,7 +59,7 @@ class ZoomAPI:
 
     :param meeting_id: UUID associated with a meeting room.
     :param auth: Encoded JWT authorization token
-    :return: tuple containing the date of the recording, the ID of the recording, and the video url.
+    :return: dict containing the date of the recording, the ID of the recording, and the video url.
     """
     zoom_url = 'https://api.zoom.us/v2/meetings/{id}/recordings'.format(id=meeting_id)
     zoom_request = requests.get(zoom_url, params={'access_token': auth})
@@ -107,11 +107,13 @@ class ZoomAPI:
 
   def pull_file_from_zoom(self, meeting_id: str, rm: bool = True) -> dict:
     """Interface for downloading recordings from Zoom. Optionally trashes recorded file on Zoom.
-    Returns true if all processes completed successfully.
+    Returns a dictionary containing success state and/or recording information.
 
     :param meeting_id: UUID for meeting room where recording was just completed.
     :param rm: If true is passed (default) then file is trashed on Zoom.
-    :return: tuple of booleans that indicates that bother operations completed successfully.
+    :return: dict containing if the operation was successful. If downloading and (optionally)
+      deleting the recording on Zoom completed successfully, include the recording date and the
+      recording filename.
     """
     try:
       # Generate token and Authorization header.

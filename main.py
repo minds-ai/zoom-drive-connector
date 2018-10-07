@@ -36,7 +36,8 @@ def upload_and_notify(files: list, drive_conn: drive.DriveAPI, slack_conn: slack
   """Uploads a list of files from the local filesystem to Google Drive.
 
   :param files: list of dictionaries containing file information.
-  :param drive_conn: configuration instance containing all Google Drive API settings.
+  :param drive_conn: API instance for Google Drive.
+  :param slack_conn: API instance for Slack.
   """
   for file in files:
     try:
