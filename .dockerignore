@@ -18,6 +18,7 @@ environment.yml
 # Ignore Docker-related files
 .dockerignore
 Dockerfile
+Makefile
 
 # Other files that should not be bundled
 **/*.md
