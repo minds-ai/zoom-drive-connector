@@ -55,7 +55,7 @@ class ZoomAPI:
       # Handle error where content may have been removed already.
       raise ZoomAPIException(409, 'Resource Conflict', res.request, 'File deleted already.')
 
-  def get_recording_url(self, meeting_id: str, auth: str) -> (datetime.datetime, str, str):
+  def get_recording_url(self, meeting_id: str, auth: str) -> dict:
     """Given a specific meeting room ID and auth token, this function gets the download url
     for most recent recording in the given meeting room.
 
@@ -74,15 +74,14 @@ class ZoomAPI:
                              'File not found or no recordings')
     else:
       print(zoom_request.json())
-      for r in zoom_request.json()['recording_files']:
+      for req in zoom_request.json()['recording_files']:
         # TODO(jbedorf) : For now let's just delete the chat messages and
         # continue processing other files
-        if r['file_type'] == 'CHAT':
-          self.delete_recording(meeting_id, r['id'], auth)
-        elif r['file_type'] == 'MP4':
-          date = dateutil.parser.parse(r['recording_start'])
-          rec_id = r['id']
-          return (date, rec_id, r['download_url'])
+        if req['file_type'] == 'CHAT':
+          self.delete_recording(meeting_id, req['id'], auth)
+        elif req['file_type'] == 'MP4':
+          date = dateutil.parser.parse(req['recording_start'])
+          return {'date': date, 'req_id': req['id'], 'url': req['download_url']}
       raise ZoomAPIException(404, 'File Not Found', zoom_request.request,
                              'File not found or no recordings')
 
@@ -108,34 +107,34 @@ class ZoomAPI:
       shutil.copyfileobj(zoom_request.raw, source)  # Copy raw file data to local file.
     return outfile
 
-  def pull_file_from_zoom(self, meeting_id: str, rm: bool = True) -> tuple:
+  def pull_file_from_zoom(self, meeting_id: str, rm: bool = True) -> dict:
     """Interface for downloading recordings from Zoom. Optionally trashes recorded file on Zoom.
     Returns true if all processes completed successfully.
 
     :param meeting_id: UUID for meeting room where recording was just completed.
     :param rm: If true is passed (default) then file is trashed on Zoom.
-    :return: tuple of booleans that indicates that bother operations completed sucessfully.
+    :return: tuple of booleans that indicates that bother operations completed successfully.
     """
     try:
       # Generate token and Authorization header.
       zoom_token = self.generate_jwt()
 
       # Get URL and download the file.
-      date, rec_id, zoom_url = self.get_recording_url(meeting_id, zoom_token)
-      filename = self.download_recording(zoom_url)
+      res = self.get_recording_url(meeting_id, zoom_token)
+      filename = self.download_recording(res['url'])
 
       if rm:
-        self.delete_recording(meeting_id, rec_id, zoom_token)
+        self.delete_recording(meeting_id, res['id'], zoom_token)
 
-      return (date, filename)
+      return {'success': True, 'date': res['date'], 'filename': filename}
     except ZoomAPIException as ze:
       print(ze)
 
       if ze.http_method == 'DELETE':
         # Allow other systems to proceed if delete fails.
-        return (True, True)
-      return (False, False)
+        return {'success': True}
+      return {'success': False}
     except OSError as fe:
-      # Catches general filesystem errors. If download coult not be written to disk, stop.
+      # Catches general filesystem errors. If download could not be written to disk, stop.
       print(fe)
-      return (False, False)
+      return {'success': False}
