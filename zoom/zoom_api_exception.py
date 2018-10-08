@@ -1,8 +1,13 @@
 from requests import PreparedRequest
+from typing import Union
 
 
 class ZoomAPIException(Exception):
-  def __init__(self, status_code: int, name: str, method: PreparedRequest, message: str):
+  def __init__(self,
+               status_code: int,
+               name: str,
+               method: Union[PreparedRequest, None],
+               message: str):
     """Initializes container for holding HTTP status information.
 
     :param status_code: HTTP status code.
