@@ -70,7 +70,7 @@ class ZoomAPI:
       # Failed to make a connection so let's just return a 404, as there is no file
       # but print an additional warning in case it was a configuration error
       print("Exception during recording request: ", e)
-      raise ZoomAPIException(404, 'File Not Found', zoom_request.request, 'Could not connect')
+      raise ZoomAPIException(404, 'File Not Found', None, 'Could not connect')
     if zoom_request.status_code == 401:
       # Handle unauthenticated requests.
       raise ZoomAPIException(401, 'Unauthorized', zoom_request.request, 'Not authenticated.')
@@ -137,7 +137,7 @@ class ZoomAPI:
     except ZoomAPIException as ze:
       print(ze)
 
-      if ze.http_method == 'DELETE':
+      if ze.http_method and ze.http_method == 'DELETE':
         # Allow other systems to proceed if delete fails.
         return (True, True)
       return (False, False)

@@ -32,4 +32,4 @@ class ZoomAPIException(Exception):
   def http_method(self):
     """Returns request method.
     """
-    return self.method.method
+    return self.method.method if self.method else None
