@@ -37,4 +37,4 @@ class ZoomAPIException(Exception):
 
     :return: String containing HTTP request method (GET, DELETE, etc.).
     """
-    return self.method.method
+    return self.method.method if self.method else None
