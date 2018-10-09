@@ -1,7 +1,7 @@
 import os
 import time
 import shutil
-
+import logging
 import requests
 import dateutil.parser
 import jwt
@@ -9,6 +9,8 @@ import jwt
 from zoom import ZoomAPIException
 from configuration import ZoomConfig
 from configuration import SystemConfig
+
+log = logging.getLogger('app')
 
 
 class ZoomAPI:
@@ -64,11 +66,11 @@ class ZoomAPI:
     zoom_url = 'https://api.zoom.us/v2/meetings/{id}/recordings'.format(id=meeting_id)
 
     try:
-      zoom_request = requests.get(zoom_url, params={"access_token": auth})
+      zoom_request = requests.get(zoom_url, params={'access_token': auth})
     except requests.exceptions.RequestException as e:
       # Failed to make a connection so let's just return a 404, as there is no file
       # but print an additional warning in case it was a configuration error
-      print("Exception during recording request: ", e)
+      log.log(logging.ERROR, e)
       raise ZoomAPIException(404, 'File Not Found', None, 'Could not connect')
     if zoom_request.status_code == 401:
       # Handle unauthenticated requests.
@@ -77,10 +79,8 @@ class ZoomAPI:
       raise ZoomAPIException(404, 'File Not Found', zoom_request.request,
                              'File not found or no recordings')
     else:
-      print(zoom_request.json())
       for req in zoom_request.json()['recording_files']:
-        # TODO(jbedorf) : For now let's just delete the chat messages and
-        # continue processing other files
+        # TODO(jbedorf): For now just delete the chat messages and continue processing other files.
         if req['file_type'] == 'CHAT':
           self.delete_recording(meeting_id, req['id'], auth)
         elif req['file_type'] == 'MP4':
@@ -95,13 +95,11 @@ class ZoomAPI:
     :param url: Download URL for meeting recording.
     :return: Path to the recording
     """
-
     session = requests.Session()
     session.headers.update({'content-type': 'application/x-www-form-urlencoded'})
 
-    session.post(
-        self.zoom_signin_url, data={'email': self.zoom_config.username,
-                                    'password': self.zoom_config.password})
+    session.post(self.zoom_signin_url,
+                 data={'email': self.zoom_config.username, 'password': self.zoom_config.password})
 
     filename = url.split('/')[-1]
     zoom_request = session.get(url, stream=True)
@@ -132,15 +130,16 @@ class ZoomAPI:
       if rm:
         self.delete_recording(meeting_id, res['id'], zoom_token)
 
+      log.log(logging.INFO, 'File {} downloaded for meeting {}.'.format(filename, meeting_id))
       return {'success': True, 'date': res['date'], 'filename': filename}
     except ZoomAPIException as ze:
-      print(ze)
-
       if ze.http_method and ze.http_method == 'DELETE':
+        log.log(logging.INFO, ze)
         # Allow other systems to proceed if delete fails.
         return {'success': True}
+      log.log(logging.ERROR, ze)
       return {'success': False}
     except OSError as fe:
       # Catches general filesystem errors. If download could not be written to disk, stop.
-      print(fe)
+      log.log(logging.ERROR, fe)
       return {'success': False}
