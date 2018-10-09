@@ -1,5 +1,5 @@
-from requests import PreparedRequest
 from typing import Union
+from requests import PreparedRequest
 
 
 class ZoomAPIException(Exception):
