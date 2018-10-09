@@ -1,6 +1,10 @@
 # Ignore app configuration files
 *.yaml*
 
+# Do not copy configuration files
+conf/
+
+
 # Ignore git specific files
 .git/
 .gitignore
