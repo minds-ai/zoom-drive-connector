@@ -122,4 +122,4 @@ $ source activate zoom-drive-connector
 Any changes to dependencies should be recorded in **both** `environment.yml` and
 `requirements.txt` with the exception of development dependencies, which can
 only be placed in `environment.yml`. Make sure to record the version of the package
-you are using using the double-equal operator.
+you are adding using the double-equal operator.
