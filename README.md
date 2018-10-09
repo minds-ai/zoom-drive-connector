@@ -63,3 +63,17 @@ $ make build
 $ docker run -d -v /path/to/conf/directory:/conf \
     minds-ai/zoom-drive-connector:latest
 ```
+
+## Making Changes to Source
+If you wish to make changes to the program source, you can quickly create a 
+Conda environment using the provided `environment.yml` file. Use the following
+commands to get started.
+```bash
+$ conda env create -f environment.yml
+$ source activate zoom-drive-connector
+``` 
+
+Any changes to dependencies should be recorded in **both** `environment.yml` and
+`requirements.txt` with the exception of development dependencies, which can
+only be placed in `environment.yml`. Make sure record the version of the package
+you are using using the double-equal operator.
