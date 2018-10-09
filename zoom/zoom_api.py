@@ -36,11 +36,11 @@ class ZoomAPI:
 
   @staticmethod
   def delete_recording(meeting_id: str, recording_id: str, auth: str):
-    """Given a specific meeting room ID, this function trashes all recordings associated with
-    that room ID.
+    """Given a specific meeting room ID and recording ID, this function moves the recording to the
+    trash in Zoom's cloud.
 
     :param meeting_id: UUID associated with a meeting room.
-    :param recording_id: The ID of the recording to delete.
+    :param recording_id: The ID of the recording to trash.
     :param auth: JWT token.
     """
     zoom_url = 'https://api.zoom.us/v2/meetings/{id}/recordings/{rid}'.format(
