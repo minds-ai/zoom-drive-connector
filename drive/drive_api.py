@@ -1,5 +1,5 @@
 import os
-
+import logging
 import httplib2shim
 import apiclient
 
@@ -9,6 +9,8 @@ from drive import DriveAPIException
 
 from configuration import DriveConfig
 from configuration import SystemConfig
+
+log = logging.getLogger('app')
 
 
 class DriveAPI:
@@ -41,6 +43,8 @@ class DriveAPI:
                                               'v3',
                                               http=creds.authorize(httplib2shim.Http()))
 
+    log.log(logging.INFO, 'Drive connection established.')
+
   def upload_file(self, file_path: str, name: str) -> str:
     """Uploads the given file to the specified folder id in Google Drive.
 
@@ -69,6 +73,8 @@ class DriveAPI:
         .files()\
         .create(body=metadata, media_body=media, fields='webViewLink')\
         .execute()
+
+    log.log(logging.INFO, 'File {} uploaded to Google Drive'.format(file_path))
 
     # Return the url to the file that was just uploaded.
     return uploaded_file.get('webViewLink')

@@ -21,7 +21,6 @@ def download(zoom_conn: zoom.ZoomAPI, zoom_conf: config.ZoomConfig) -> list:
   for meeting in zoom_conf.meetings:
     res = zoom_conn.pull_file_from_zoom(meeting['id'], rm=zoom_conf.delete)
     if (res['success']) and ('url' in res):
-      print('From {} downloaded {}'.format(meeting, res['filename']))
       name = '{}-{}.mp4'.format(res['date'].strftime('%Y%m%d'), meeting['name'])
 
       result.append({'meeting': meeting['name'],
@@ -51,7 +50,6 @@ def upload_and_notify(files: list, drive_conn: drive.DriveAPI, slack_conn: slack
         file_url)
       slack_conn.post_message(message)
     except drive.DriveAPIException as e:
-      print('Upload failed')
       raise e
     # Remove the file after uploading so we do not run out of disk space in our container.
     os.remove(file['file'])
@@ -61,8 +59,8 @@ def all_steps(zoom_conn: zoom.ZoomAPI,
               slack_conn: slack.SlackAPI,
               drive_conn: drive.DriveAPI,
               zoom_config: config.ZoomConfig):
-  """Downloads all files from Zoom and uploads them to Drive. Notifies people in the specified Slack
-  channel.
+  """Primary function dispatcher that calls functions which download files and then upload them and
+  notifies people in Slack that they are on Google Drive.
 
   :param zoom_conn: API object instance for Zoom.
   :param slack_conn: API object instance for Slack.
@@ -70,11 +68,6 @@ def all_steps(zoom_conn: zoom.ZoomAPI,
   :param zoom_config: configuration instance containing all Zoom API settings.
   """
   downloaded_files = download(zoom_conn, zoom_config)
-
-  for file in downloaded_files:
-    print('Got {}'.format(file['file']))
-    print(file)
-
   upload_and_notify(downloaded_files, drive_conn, slack_conn)
 
 

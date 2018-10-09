@@ -1,6 +1,10 @@
+import logging
+
 from slackclient import SlackClient
 
 from configuration.configuration_interfaces import SlackConfig
+
+log = logging.getLogger('app')
 
 
 class SlackAPI:
@@ -22,3 +26,4 @@ class SlackAPI:
     if not channel:
       channel = self.config.channel
     self.sc.api_call('chat.postMessage', channel=channel, text=text)
+    log.log(logging.INFO, 'Slack notification sent.')
