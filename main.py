@@ -1,3 +1,4 @@
+import logging
 import os
 import time
 import schedule
@@ -20,7 +21,7 @@ def download(zoom_conn: zoom.ZoomAPI, zoom_conf: config.ZoomConfig) -> list:
 
   for meeting in zoom_conf.meetings:
     res = zoom_conn.pull_file_from_zoom(meeting['id'], rm=zoom_conf.delete)
-    if (res['success']) and ('url' in res):
+    if (res['success']) and ('filename' in res):
       name = '{}-{}.mp4'.format(res['date'].strftime('%Y%m%d'), meeting['name'])
 
       result.append({'meeting': meeting['name'],

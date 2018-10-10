@@ -123,3 +123,7 @@ Any changes to dependencies should be recorded in **both** `environment.yml` and
 `requirements.txt` with the exception of development dependencies, which 
 only have to be placed in `environment.yml`. Make sure to record the version of the package
 you are adding using the double-equal operator.
+
+To run the program in the conda environment you can use the following command line:
+`CONFIG=conf/config.yaml python -u main.py --noauth_local_webserver`
+

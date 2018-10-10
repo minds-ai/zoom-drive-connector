@@ -47,7 +47,6 @@ class ZoomAPI:
         id=meeting_id, rid=recording_id)
     res = requests.delete(zoom_url,
                           params={'access_token': auth, 'action': 'trash'})  # trash, not delete
-
     if res.status_code == 401:
       # Handle unauthenticated requests.
       raise ZoomAPIException(401, 'Unauthorized', res.request, 'Not authenticated.')
@@ -85,7 +84,7 @@ class ZoomAPI:
           self.delete_recording(meeting_id, req['id'], auth)
         elif req['file_type'] == 'MP4':
           date = dateutil.parser.parse(req['recording_start'])
-          return {'date': date, 'req_id': req['id'], 'url': req['download_url']}
+          return {'date': date, 'id': req['id'], 'url': req['download_url']}
       raise ZoomAPIException(404, 'File Not Found', zoom_request.request,
                              'File not found or no recordings')
 
@@ -129,7 +128,6 @@ class ZoomAPI:
 
       if rm:
         self.delete_recording(meeting_id, res['id'], zoom_token)
-
       log.log(logging.INFO, 'File {} downloaded for meeting {}.'.format(filename, meeting_id))
       return {'success': True, 'date': res['date'], 'filename': filename}
     except ZoomAPIException as ze:
