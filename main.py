@@ -80,7 +80,7 @@ if __name__ == '__main__':
   slack_api = slack.SlackAPI(app_config.slack)
   drive_api = drive.DriveAPI(app_config.drive, app_config.internals)  # This should open a prompt.
 
-  # Run the application on a schedule.
+  # Run the application on a 10 minute schedule.
   all_steps(zoom_api, slack_api, drive_api, app_config.zoom)
   schedule.every(10).minutes.do(all_steps, zoom_api, slack_api, drive_api, app_config.zoom)
   while True:

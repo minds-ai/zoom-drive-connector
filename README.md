@@ -20,19 +20,19 @@ zoom:
   delete: true
   meetings: 
     - {id: "meeting_id" , name: "Meeting Name"}
+    - {id: "meeting_id2" , name: "Second Meeting Name"}
 drive:
   credentials_json: "conf/credentials.json"
   client_secret_json: "conf/client_secrets.json"
-  folder_id: "some_folder_id"
+  folder_id: "Some Google Drive Folder ID"
 slack:
   channel: "channel_name"
   key: "slack_api_key"
 internals:
   target_folder: /tmp
 ``` 
-*Note:* you will need to keep track of the directory of this file as it is 
-required to run the container. Creating a separate folder for this file is 
-recommended.
+*Note:* It is advised to place this file in the `conf` folder (together with the json credentials)
+this folder needs to be referenced when you launch the Docker container (see below).
 
 You will need to fill in the example values in the file above. In order to 
 fill in some of these values you will need to create developer credentials on
@@ -46,14 +46,14 @@ Paste the API key and secret into `config.yaml` under the `zoom` section.
 It is (currently) not possible to download the recordings via the API key. 
 As such you need to create a new Zoom user within your organizations Zoom account. 
 This can be a non-pro user. It is important that this user logs in via a username 
-and a password. The username and password for this account should be added 
-to the `username` and `password` under the `zoom` section.
+and password. The username and password for this account should be added 
+to the `username` and `password` entrees under the `zoom` section.
 
 
 ### Google Drive
 
 To upload files to Google Drive you have to login to your developer console, create a new project,
-set the required permissions and then download the access keys. This can be done via the following
+set the required permissions and then download the access key. This can be done via the following
 steps:
 
 1. Go to the [Google API Console](https://console.developers.google.com/)
@@ -80,13 +80,13 @@ The `credentials` file will be created during the first start (see below)
 3. Under 'Scopes' select `chat:write:bot`
 4. On the same page copy the "OAuth Access Token".
    Paste that value into the configuration file under the `slack` section.
-5. Put the name of the channel to post statuses to in Slack in the config file.
+5. Put the name of the Slack channel to post statuses in the config file.
 
 ## Running the Program
 
-The first time we run the program we have to authenticate it and accept the required
+The first time we run the program we have to authenticate it with Google and accept the required
 permissions. For this we run the docker container in the interactive mode such that we 
-can enter the generate token. 
+can enter the generated token. 
 
 ```bash
 $ cd zoom-drive-connector/
@@ -120,6 +120,6 @@ $ source activate zoom-drive-connector
 ``` 
 
 Any changes to dependencies should be recorded in **both** `environment.yml` and
-`requirements.txt` with the exception of development dependencies, which can
-only be placed in `environment.yml`. Make sure to record the version of the package
+`requirements.txt` with the exception of development dependencies, which 
+only have to be placed in `environment.yml`. Make sure to record the version of the package
 you are adding using the double-equal operator.
