@@ -1,5 +1,4 @@
 pyjwt==1.5.3
-requests==2.14.2
 pyyaml==3.12
 slackclient==1.2.1
 schedule==0.5.0

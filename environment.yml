@@ -1,7 +1,6 @@
 name: zoom-drive-connector
 dependencies:
   - python=3.6
-  - requests=2.14.2
   - pyyaml=3.12
   - pip:
       - pycodestyle==2.4.0 # Dev dependency.
@@ -11,3 +10,4 @@ dependencies:
       - oauth2client==4.1.2
       - httplib2shim==0.0.3
       - slackclient==1.2.1
+      - pyjwt==1.5.3
