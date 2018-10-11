@@ -1,9 +1,9 @@
+import datetime
 import os
 import time
 import shutil
 import logging
 import requests
-import datetime
 import jwt
 
 from zoom import ZoomAPIException
@@ -83,8 +83,7 @@ class ZoomAPI:
         if req['file_type'] == 'CHAT':
           self.delete_recording(meeting_id, req['id'], auth)
         elif req['file_type'] == 'MP4':
-          date = datetime.datetime.strptime(req['recording_start'][:-5], '%Y-%m-%dT%H:%M:%S') \
-                 - datetime.timedelta(seconds=time.altzone if time.daylight else time.timezone)
+          date = datetime.datetime.strptime(req['recording_start'], '%Y-%m-%dT%H:%M:%SZ')
           return {'date': date, 'id': req['id'], 'url': req['download_url']}
       raise ZoomAPIException(404, 'File Not Found', zoom_request.request,
                              'File not found or no recordings')

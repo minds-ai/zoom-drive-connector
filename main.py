@@ -45,7 +45,7 @@ def upload_and_notify(files: list, drive_conn: drive.DriveAPI, slack_conn: slack
       file_url = drive_conn.upload_file(file['file'], file['name'])
 
       # Only post message if the upload worked.
-      message = 'The recording of _{}_ on _{}_ is <{}| now available>.'.format(
+      message = 'The recording of _{}_ on _{} UTC_ is <{}| now available>.'.format(
         file['meeting'],
         file['date'],
         file_url)
@@ -76,11 +76,13 @@ if __name__ == '__main__':
   # App configuration.
   app_config = config.ConfigInterface(os.getenv('CONFIG', '/conf/config.yaml'))
 
-  # Setup logging and state that the application has started.
-  logging.basicConfig(level=logging.INFO,
-                      format='%(asctime)s %(module)s:%(levelname)s %(message)s',
-                      stream=logging.StreamHandler)
+  # Configure the logger interface to print to console with level INFO
   log = logging.getLogger('app')
+  log.setLevel(logging.INFO)
+  ch = logging.StreamHandler()
+  ch.setFormatter(logging.Formatter('%(asctime)s %(module)s:%(levelname)s %(message)s'))
+  log.addHandler(ch)
+
   log.info('Application starting up.')
 
   # Configure each API service module.
