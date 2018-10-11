@@ -3,7 +3,6 @@ dependencies:
   - python=3.6
   - requests=2.14.2
   - pyyaml=3.12
-  - python-dateutil=2.6.1
   - pip:
       - pycodestyle==2.4.0 # Dev dependency.
       - pylint==1.9.2 # Dev dependency.
