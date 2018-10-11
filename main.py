@@ -27,7 +27,7 @@ def download(zoom_conn: zoom.ZoomAPI, zoom_conf: config.ZoomConfig) -> list:
       result.append({'meeting': meeting['name'],
                      'file': res['filename'],
                      'name': name,
-                     'date': res['date'].strftime('%B %d, %Y')})
+                     'date': res['date'].strftime('%B %d, %Y at %H:%M')})
 
   return result
 
@@ -45,7 +45,7 @@ def upload_and_notify(files: list, drive_conn: drive.DriveAPI, slack_conn: slack
       file_url = drive_conn.upload_file(file['file'], file['name'])
 
       # Only post message if the upload worked.
-      message = 'The recording _{}_ meeting on _{}_ is <{}| now available>.'.format(
+      message = 'The recording of _{}_ on _{}_ is <{}| now available>.'.format(
         file['meeting'],
         file['date'],
         file_url)
