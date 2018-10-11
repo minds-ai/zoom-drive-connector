@@ -76,6 +76,13 @@ if __name__ == '__main__':
   # App configuration.
   app_config = config.ConfigInterface(os.getenv('CONFIG', '/conf/config.yaml'))
 
+  # Setup logging and state that the application has started.
+  logging.basicConfig(level=logging.INFO,
+                      format='%(asctime)s %(module)s:%(levelname)s %(message)s',
+                      stream=logging.StreamHandler)
+  log = logging.getLogger('app')
+  log.info('Application starting up.')
+
   # Configure each API service module.
   zoom_api = zoom.ZoomAPI(app_config.zoom, app_config.internals)
   slack_api = slack.SlackAPI(app_config.slack)
