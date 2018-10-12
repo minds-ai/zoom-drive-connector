@@ -65,11 +65,11 @@ class SystemConfig(APIConfigBase):
   _classname = 'internals'
 
   def validate(self) -> bool:
-    """Returns true if the target folder exists and the port number is greater than 1000.
+    """Returns true if the target folder exists.
 
-    :return: True if the conditions listed about evaluate individually to true.
+    :return: True if the condition listed about evaluates to true.
     """
-    return os.path.isdir(self.settings_dict['target_folder']) and self.settings_dict['port'] > 1000
+    return os.path.isdir(self.settings_dict['target_folder'])
 
 
 class ConfigInterface:
@@ -93,6 +93,7 @@ class ConfigInterface:
       print('Error in YAML file {f}'.format(f=self.file))
 
       # If the error can be identified, print it to the console.
+      # pylint: disable=no-member
       if hasattr(ye, 'problem_mark'):
         print('Position ({line}, {col})'.format(line=ye.problem_mark + 1, col=ye.problem_mark + 1))
 

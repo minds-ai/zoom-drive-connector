@@ -1,5 +1,5 @@
 import os
-
+import logging
 import httplib2shim
 import apiclient
 
@@ -9,6 +9,8 @@ from drive import DriveAPIException
 
 from configuration import DriveConfig
 from configuration import SystemConfig
+
+log = logging.getLogger('app')
 
 
 class DriveAPI:
@@ -37,38 +39,42 @@ class DriveAPI:
       flow = client.flow_from_clientsecrets(self.drive_config.client_secret_json, self._scopes)
       creds = tools.run_flow(flow, store)
 
-    self._service = apiclient.discovery.build('drive', 'v3', http=creds.authorize(httplib2shim.Http()))
+    self._service = apiclient.discovery.build('drive',
+                                              'v3',
+                                              http=creds.authorize(httplib2shim.Http()))
 
-  def upload_file(self, filename: str, name: str) -> str:
+    log.log(logging.INFO, 'Drive connection established.')
+
+  def upload_file(self, file_path: str, name: str) -> str:
     """Uploads the given file to the specified folder id in Google Drive.
 
-    :param filename: Name of the file within the storage folder to upload to Drive.
+    :param file_path: Path to file to upload to Google Drive.
     :param name: Final name of the file
     :return: The url of the file in Google Drive.
     """
 
     if self._service is None:
       # Raise an exception if setup() hasn't been run.
-      raise DriveAPIException(name="Service error", reason="setup() method not called.")
+      raise DriveAPIException(name='Service error', reason='setup() method not called.')
 
-    #complete_path = '{0}/{1}'.format(self.sys_config.target_folder, filename)
-    complete_path = filename  # Not using the above join as the filename has the path included
-    if not filename or not os.path.exists(complete_path):
+    if not file_path or not os.path.exists(file_path):
       # Raise an exception if the specified file doesn't exist.
       raise DriveAPIException(
-          name="File error", reason='{f} could not be found.'.format(f=complete_path))
+          name='File error', reason='{f} could not be found.'.format(f=file_path))
 
     # Google Drive file metadata
     metadata = {'name': name, 'parents': [self.drive_config.folder_id]}
 
     # Create a new upload of the recording and execute it.
-    media = apiclient.http.MediaFileUpload(complete_path, mimetype='video/mp4')
+    media = apiclient.http.MediaFileUpload(file_path, mimetype='video/mp4')
 
     # pylint: disable=no-member
     uploaded_file = self._service\
         .files()\
         .create(body=metadata, media_body=media, fields='webViewLink')\
         .execute()
+
+    log.log(logging.INFO, 'File {} uploaded to Google Drive'.format(file_path))
 
     # Return the url to the file that was just uploaded.
     return uploaded_file.get('webViewLink')

@@ -1,3 +1,4 @@
+import logging
 import os
 import time
 import schedule
@@ -19,14 +20,14 @@ def download(zoom_conn: zoom.ZoomAPI, zoom_conf: config.ZoomConfig) -> list:
   result = []
 
   for meeting in zoom_conf.meetings:
-    date, storage_url = zoom_conn.pull_file_from_zoom(meeting["id"], rm=zoom_conf.delete)
-    if date is not False:
-      print("From {} downloaded {}".format(meeting, storage_url))
-      name = "{}-{}.mp4".format(date.strftime("%Y%m%d"), meeting["name"])
+    res = zoom_conn.pull_file_from_zoom(meeting['id'], rm=zoom_conf.delete)
+    if (res['success']) and ('filename' in res):
+      name = '{}-{}.mp4'.format(res['date'].strftime('%Y%m%d'), meeting['name'])
 
-      date = date.strftime("%B %d, %Y")
-
-      result.append({"meeting": meeting["name"], "file": storage_url, "name": name, "date": date})
+      result.append({'meeting': meeting['name'],
+                     'file': res['filename'],
+                     'name': name,
+                     'date': res['date'].strftime('%B %d, %Y at %H:%M')})
 
   return result
 
@@ -35,30 +36,32 @@ def upload_and_notify(files: list, drive_conn: drive.DriveAPI, slack_conn: slack
   """Uploads a list of files from the local filesystem to Google Drive.
 
   :param files: list of dictionaries containing file information.
-  :param drive_conn: configuration instance containing all Google Drive API settings.
+  :param drive_conn: API instance for Google Drive.
+  :param slack_conn: API instance for Slack.
   """
   for file in files:
     try:
       # Get url from upload function.
-      file_url = drive_conn.upload_file(file["file"], file["name"])
+      file_url = drive_conn.upload_file(file['file'], file['name'])
 
       # Only post message if the upload worked.
-      message = f'The recording _{file["meeting"]}_ ' \
-                f'meeting on _{file["date"]}_ is <{file_url}| now available>.'
+      message = 'The recording of _{}_ on _{} UTC_ is <{}| now available>.'.format(
+        file['meeting'],
+        file['date'],
+        file_url)
       slack_conn.post_message(message)
     except drive.DriveAPIException as e:
-      print("Upload failed")
       raise e
-    # Remove the file after uploading so we do not run out of disk space in our container
-    os.remove(file["file"])
+    # Remove the file after uploading so we do not run out of disk space in our container.
+    os.remove(file['file'])
 
 
 def all_steps(zoom_conn: zoom.ZoomAPI,
               slack_conn: slack.SlackAPI,
               drive_conn: drive.DriveAPI,
               zoom_config: config.ZoomConfig):
-  """Downloads all files from Zoom and uploads them to Drive. Notifies people in the specified Slack
-  channel.
+  """Primary function dispatcher that calls functions which download files and then upload them and
+  notifies people in Slack that they are on Google Drive.
 
   :param zoom_conn: API object instance for Zoom.
   :param slack_conn: API object instance for Slack.
@@ -66,24 +69,28 @@ def all_steps(zoom_conn: zoom.ZoomAPI,
   :param zoom_config: configuration instance containing all Zoom API settings.
   """
   downloaded_files = download(zoom_conn, zoom_config)
-
-  for file in downloaded_files:
-    print(f'Got {file["file"]}')
-    print(file)
-
   upload_and_notify(downloaded_files, drive_conn, slack_conn)
 
 
 if __name__ == '__main__':
   # App configuration.
-  app_config = config.ConfigInterface('config.yaml')
+  app_config = config.ConfigInterface(os.getenv('CONFIG', '/conf/config.yaml'))
+
+  # Configure the logger interface to print to console with level INFO
+  log = logging.getLogger('app')
+  log.setLevel(logging.INFO)
+  ch = logging.StreamHandler()
+  ch.setFormatter(logging.Formatter('%(asctime)s %(module)s:%(levelname)s %(message)s'))
+  log.addHandler(ch)
+
+  log.info('Application starting up.')
 
   # Configure each API service module.
   zoom_api = zoom.ZoomAPI(app_config.zoom, app_config.internals)
   slack_api = slack.SlackAPI(app_config.slack)
   drive_api = drive.DriveAPI(app_config.drive, app_config.internals)  # This should open a prompt.
 
-  # Run the application on a schedule.
+  # Run the application on a 10 minute schedule.
   all_steps(zoom_api, slack_api, drive_api, app_config.zoom)
   schedule.every(10).minutes.do(all_steps, zoom_api, slack_api, drive_api, app_config.zoom)
   while True:
