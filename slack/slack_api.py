@@ -1,4 +1,5 @@
 import logging
+from typing import Union
 
 from slackclient import SlackClient
 
@@ -16,7 +17,7 @@ class SlackAPI:
     self.config = config
     self.sc = SlackClient(self.config.key)
 
-  def post_message(self, text: str, channel: str = None):
+  def post_message(self, text: str, channel: Union[str, int] = None):
     """Sends message to specific Slack channel with given payload.
 
     :param text: message to sent to Slack channel.

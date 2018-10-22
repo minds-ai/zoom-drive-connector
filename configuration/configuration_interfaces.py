@@ -1,4 +1,4 @@
-from typing import Union
+from typing import Dict, Union
 
 import os
 import yaml
@@ -77,7 +77,7 @@ class ConfigInterface:
     """Initializes and loads configuration file to Python object.
     """
     self.file = file
-    self.configuration_dict = dict()
+    self.configuration_dict: Dict = dict()
 
     # Load configuration
     self.__interface_factory()
@@ -95,7 +95,8 @@ class ConfigInterface:
       # If the error can be identified, print it to the console.
       # pylint: disable=no-member
       if hasattr(ye, 'problem_mark'):
-        print('Position ({line}, {col})'.format(line=ye.problem_mark + 1, col=ye.problem_mark + 1))
+        print('Position ({line}, {col})'.format(line=ye.problem_mark + 1,  # type: ignore
+                                                col=ye.problem_mark + 1))  # type: ignore
 
       raise SystemExit  # Crash program
 

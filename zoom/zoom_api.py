@@ -32,7 +32,7 @@ class ZoomAPI:
     and expiration time encoded with the secret key.
     """
     payload = {'iss': self.zoom_config.key, 'exp': int(time.time()) + self.timeout}
-    return jwt.encode(payload, self.zoom_config.secret, algorithm='HS256')
+    return str(jwt.encode(payload, str(self.zoom_config.secret), algorithm='HS256'))
 
   @staticmethod
   def delete_recording(meeting_id: str, recording_id: str, auth: str):
@@ -45,8 +45,9 @@ class ZoomAPI:
     """
     zoom_url = 'https://api.zoom.us/v2/meetings/{id}/recordings/{rid}'.format(
         id=meeting_id, rid=recording_id)
-    res = requests.delete(zoom_url,
-                          params={'access_token': auth, 'action': 'trash'})  # trash, not delete
+    res = requests.delete(
+        zoom_url, params={'access_token': auth,
+                          'action': 'trash'})  # trash, not delete
     if res.status_code == 401:
       # Handle unauthenticated requests.
       raise ZoomAPIException(401, 'Unauthorized', res.request, 'Not authenticated.')
@@ -97,13 +98,15 @@ class ZoomAPI:
     session = requests.Session()
     session.headers.update({'content-type': 'application/x-www-form-urlencoded'})
 
-    session.post(self.zoom_signin_url,
-                 data={'email': self.zoom_config.username, 'password': self.zoom_config.password})
+    session.post(
+        self.zoom_signin_url,
+        data={'email': str(self.zoom_config.username),
+              'password': str(self.zoom_config.password)})
 
     filename = url.split('/')[-1]
     zoom_request = session.get(url, stream=True)
 
-    outfile = os.path.join(self.sys_config.target_folder, filename + '.mp4')
+    outfile = os.path.join(str(self.sys_config.target_folder), filename + '.mp4')
     with open(outfile, 'wb') as source:
       shutil.copyfileobj(zoom_request.raw, source)  # Copy raw file data to local file.
     return outfile
