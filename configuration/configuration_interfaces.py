@@ -103,7 +103,7 @@ class ConfigInterface:
   def __interface_factory(self):
     """Loads configuration file using `self.__load_config` and iterates through each top-level key
     and instantiates the corresponding configuration class depending on the name of the key. Each
-    class then has it's validation method run to check for any errors.
+    class then has its validation method run to check for any errors.
     """
     dict_from_yaml = self.__load_config()
 

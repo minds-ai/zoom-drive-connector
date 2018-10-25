@@ -3,25 +3,27 @@ import os
 import time
 import shutil
 import logging
+from typing import TypeVar, cast
+
 import requests
 import jwt
 
 from zoom import ZoomAPIException
-from configuration import ZoomConfig
-from configuration import SystemConfig
+from configuration import APIConfigBase, ZoomConfig, SystemConfig
 
 log = logging.getLogger('app')
+S = TypeVar("S", bound=APIConfigBase)
 
 
 class ZoomAPI:
-  def __init__(self, zoom_config: ZoomConfig, sys_config: SystemConfig):
+  def __init__(self, zoom_config: S, sys_config: S):
     """Class initialization; sets client key, secret, and download folder path.
 
     :param zoom_config: configuration class containing all relevant parameters for Zoom API.
     :param sys_config: configuration class containing target folder where to download contains.
     """
-    self.zoom_config = zoom_config
-    self.sys_config = sys_config
+    self.zoom_config = cast(ZoomConfig, zoom_config)
+    self.sys_config = cast(SystemConfig, sys_config)
 
     # Information required to login to allow downloads
     self.zoom_signin_url = 'https://api.zoom.us/signin'
