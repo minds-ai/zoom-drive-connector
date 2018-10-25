@@ -27,15 +27,15 @@ class ZoomAPI:
     self.zoom_signin_url = 'https://api.zoom.us/signin'
     self.timeout = 1800  # Default expiration time is 30 minutes.
 
-  def generate_jwt(self) -> str:
+  def generate_jwt(self) -> bytes:
     """Generates the JSON web token used for authenticating with Zoom. Sends client key
     and expiration time encoded with the secret key.
     """
     payload = {'iss': self.zoom_config.key, 'exp': int(time.time()) + self.timeout}
-    return str(jwt.encode(payload, str(self.zoom_config.secret), algorithm='HS256'))
+    return jwt.encode(payload, str(self.zoom_config.secret), algorithm='HS256')
 
   @staticmethod
-  def delete_recording(meeting_id: str, recording_id: str, auth: str):
+  def delete_recording(meeting_id: str, recording_id: str, auth: bytes):
     """Given a specific meeting room ID and recording ID, this function moves the recording to the
     trash in Zoom's cloud.
 
@@ -55,7 +55,7 @@ class ZoomAPI:
       # Handle error where content may have been removed already.
       raise ZoomAPIException(409, 'Resource Conflict', res.request, 'File deleted already.')
 
-  def get_recording_url(self, meeting_id: str, auth: str) -> dict:
+  def get_recording_url(self, meeting_id: str, auth: bytes) -> dict:
     """Given a specific meeting room ID and auth token, this function gets the download url
     for most recent recording in the given meeting room.
 
