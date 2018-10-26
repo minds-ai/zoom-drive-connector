@@ -15,28 +15,29 @@
 
 import os
 import logging
+from typing import TypeVar, cast
+
 import httplib2shim
 import apiclient
-
 from oauth2client import file, client, tools
 
 from drive import DriveAPIException
 
-from configuration import DriveConfig
-from configuration import SystemConfig
+from configuration import DriveConfig, SystemConfig, APIConfigBase
 
 log = logging.getLogger('app')
+S = TypeVar("S", bound=APIConfigBase)
 
 
 class DriveAPI:
-  def __init__(self, drive_config: DriveConfig, sys_config: SystemConfig):
+  def __init__(self, drive_config: S, sys_config: S):
     """Initializes instance of DriveAPI class.
 
     :param drive_config: configuration class containing all parameters needed for Google Drive.
     :param sys_config: configuration class containing all system related parameters.
     """
-    self.drive_config = drive_config
-    self.sys_config = sys_config
+    self.drive_config = cast(DriveConfig, drive_config)
+    self.sys_config = cast(SystemConfig, sys_config)
 
     self._scopes = ['https://www.googleapis.com/auth/drive.file']
     self._service = None

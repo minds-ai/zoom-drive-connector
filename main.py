@@ -16,12 +16,17 @@
 import logging
 import os
 import time
+from typing import TypeVar, cast, Dict
+
 import schedule
 
 import zoom
 import slack
 import drive
 import configuration as config
+
+
+S = TypeVar("S", bound=config.APIConfigBase)
 
 
 def download(zoom_conn: zoom.ZoomAPI, zoom_conf: config.ZoomConfig) -> list:
@@ -34,8 +39,11 @@ def download(zoom_conn: zoom.ZoomAPI, zoom_conf: config.ZoomConfig) -> list:
   """
   result = []
 
-  for meeting in zoom_conf.meetings:
-    res = zoom_conn.pull_file_from_zoom(meeting['id'], rm=zoom_conf.delete)
+  # Note, need type: ignore here as the return Union contains items without iterator
+  meeting = {}  # type: Dict
+  for meeting in zoom_conf.meetings:  # type: ignore
+    meeting = cast(Dict, meeting)
+    res = zoom_conn.pull_file_from_zoom(meeting['id'], rm=bool(zoom_conf.delete))
     if (res['success']) and ('filename' in res):
       name = '{}-{}.mp4'.format(res['date'].strftime('%Y%m%d'), meeting['name'])
 
@@ -74,7 +82,7 @@ def upload_and_notify(files: list, drive_conn: drive.DriveAPI, slack_conn: slack
 def all_steps(zoom_conn: zoom.ZoomAPI,
               slack_conn: slack.SlackAPI,
               drive_conn: drive.DriveAPI,
-              zoom_config: config.ZoomConfig):
+              zoom_config: S):
   """Primary function dispatcher that calls functions which download files and then upload them and
   notifies people in Slack that they are on Google Drive.
 
@@ -83,7 +91,7 @@ def all_steps(zoom_conn: zoom.ZoomAPI,
   :param drive_conn: API object instance for Google Drive.
   :param zoom_config: configuration instance containing all Zoom API settings.
   """
-  downloaded_files = download(zoom_conn, zoom_config)
+  downloaded_files = download(zoom_conn, cast(config.ZoomConfig, zoom_config))
   upload_and_notify(downloaded_files, drive_conn, slack_conn)
 
 

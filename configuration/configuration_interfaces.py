@@ -12,8 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ==============================================================================
-
-from typing import Union
+from typing import Dict, Union
 
 import os
 import yaml
@@ -92,7 +91,7 @@ class ConfigInterface:
     """Initializes and loads configuration file to Python object.
     """
     self.file = file
-    self.configuration_dict = dict()
+    self.configuration_dict: Dict = dict()
 
     # Load configuration
     self.__interface_factory()
@@ -110,14 +109,15 @@ class ConfigInterface:
       # If the error can be identified, print it to the console.
       # pylint: disable=no-member
       if hasattr(ye, 'problem_mark'):
-        print('Position ({line}, {col})'.format(line=ye.problem_mark + 1, col=ye.problem_mark + 1))
+        print('Position ({line}, {col})'.format(line=ye.problem_mark + 1,  # type: ignore
+                                                col=ye.problem_mark + 1))  # type: ignore
 
       raise SystemExit  # Crash program
 
   def __interface_factory(self):
     """Loads configuration file using `self.__load_config` and iterates through each top-level key
     and instantiates the corresponding configuration class depending on the name of the key. Each
-    class then has it's validation method run to check for any errors.
+    class then has its validation method run to check for any errors.
     """
     dict_from_yaml = self.__load_config()
 

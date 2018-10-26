@@ -36,6 +36,9 @@ check_file () {
 
   echo "PYLINT:"
   pylint --rcfile=".pylintrc" --output-format=parseable "$file_name"
+
+  echo "MYPY:"
+  mypy --ignore-missing-imports "$file_name"  
 }
 
 #######################################

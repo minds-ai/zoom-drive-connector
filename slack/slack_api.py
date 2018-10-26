@@ -14,24 +14,26 @@
 # ==============================================================================
 
 import logging
+from typing import Union, TypeVar, cast
 
 from slackclient import SlackClient
 
-from configuration.configuration_interfaces import SlackConfig
+from configuration import SlackConfig, APIConfigBase
 
 log = logging.getLogger('app')
+S = TypeVar("S", bound=APIConfigBase)
 
 
 class SlackAPI:
-  def __init__(self, config: SlackConfig):
+  def __init__(self, config: S):
     """Class initialization. Stores link config and initializes client with supplied key.
 
     :param config: Slack configuration object.
     """
-    self.config = config
+    self.config = cast(SlackConfig, config)
     self.sc = SlackClient(self.config.key)
 
-  def post_message(self, text: str, channel: str = None):
+  def post_message(self, text: str, channel: Union[str, int] = None):
     """Sends message to specific Slack channel with given payload.
 
     :param text: message to sent to Slack channel.
