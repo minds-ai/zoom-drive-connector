@@ -49,41 +49,36 @@ This can be a non-pro user. It is important that this user logs in via a usernam
 and password. The username and password for this account should be added 
 to the `username` and `password` entrees under the `zoom` section.
 
-
 ### Google Drive
-
 To upload files to Google Drive you have to login to your developer console, create a new project,
 set the required permissions and then download the access key. This can be done via the following
 steps:
 
 1. Go to the [Google API Console](https://console.developers.google.com/)
-2. Click on 'Create new project'  
-3. Give it a name and enter any other required info
-4. Once back on the dashboard click on 'Enable APIs and Services' (make sure your newly 
+2. Click on "Create new project".
+3. Give it a name and enter any other required info.
+4. Once back on the dashboard click on "Enable APIs and Services" (make sure your newly 
 created project is selected).
-5. Search for and enable: 'Google Drive API'
-6. Go back to the dashboard and click on 'Credentials' in the left side bar
-7. On the credentials screen click on the 'Create credentials' button and select 'OAuth client ID'
+5. Search for and enable: "Google Drive API".
+6. Go back to the dashboard and click on "Credentials" in the left side bar.
+7. On the credentials screen click on the "Create credentials" button and select "OAuth client ID".
 8. Follow the instructions to set a product name, on the next screen only the `Application name`
-is required. Enter it and click on 'save'.
-9. As application type, select 'Other' and fill in the name of your client.
-10. Now under 'OAuth 2.0 client IDs' download the JSON file for the newly create client ID 
-11. Save this file as `client_secrets.json` in the `conf` directory
-
+is required. Enter it and click on "save".
+9. As application type, select "Other" and fill in the name of your client.
+10. Now under "OAuth 2.0 client IDs" download the JSON file for the newly create client ID 
+11. Save this file as `client_secrets.json` in the `conf` directory.
 
 The `credentials` file will be created during the first start (see below)
 
-
 ### Slack
 1. Register a new app using [this link](https://api.slack.com/apps/new).
-2. Under 'Add features and functionality' select 'Permissions'
-3. Under 'Scopes' select `chat:write:bot`
+2. Under "Add features and functionality" select "Permissions".
+3. Under 'Scopes' select `chat:write:bot`.
 4. On the same page copy the "OAuth Access Token".
    Paste that value into the configuration file under the `slack` section.
 5. Put the name of the Slack channel to post statuses in the config file.
 
 ## Running the Program
-
 The first time we run the program we have to authenticate it with Google and accept the required
 permissions. For this we run the docker container in the interactive mode such that we 
 can enter the generated token. 
@@ -101,11 +96,8 @@ terminal. After the token has been accepted a `credentials.json` file will have 
 created in your configuration folder. You can now kill (`ctrl-C`) the Docker container 
 and follow the steps below to run it in the background.
 
-
-Run the following commands to start the container:
+Run the following command to start the container after finishing the setup process.
 ```bash
-$ cd zoom-drive-connector/
-$ make build
 $ docker run -d -v /path/to/conf/directory:/conf \
     minds-ai/zoom-drive-connector:latest
 ```
@@ -125,5 +117,6 @@ only have to be placed in `environment.yml`. Make sure to record the version of 
 you are adding using the double-equal operator.
 
 To run the program in the conda environment you can use the following command line:
-`CONFIG=conf/config.yaml python -u main.py --noauth_local_webserver`
-
+```bash
+CONFIG=conf/config.yaml python -u main.py --noauth_local_webserver
+```
