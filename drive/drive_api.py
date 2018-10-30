@@ -87,7 +87,7 @@ class DriveAPI:
     # pylint: disable=no-member
     uploaded_file = self._service\
         .files()\
-        .create(body=metadata, media_body=media, fields='webViewLink')\
+        .create(body=metadata, media_body=media, fields='webViewLink', supportsTeamDrives=True)\
         .execute()
 
     log.log(logging.INFO, 'File {} uploaded to Google Drive'.format(file_path))
