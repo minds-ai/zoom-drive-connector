@@ -19,7 +19,7 @@ import os
 import time
 import shutil
 import logging
-from typing import TypeVar, cast, Dict
+from typing import TypeVar, cast, Dict, Any
 
 import requests
 import jwt
@@ -82,7 +82,7 @@ class ZoomAPI:
       raise ZoomAPIException(status_code, res.reason, res.request, self.message.get(
           status_code, ''))
 
-  def get_recording_url(self, meeting_id: str, auth: bytes) -> Dict:
+  def get_recording_url(self, meeting_id: str, auth: bytes) -> Dict[str, Any]:
     """Given a specific meeting room ID and auth token, this function gets the download url
     for most recent recording in the given meeting room.
 
@@ -140,7 +140,7 @@ class ZoomAPI:
       shutil.copyfileobj(zoom_request.raw, source)  # Copy raw file data to local file.
     return outfile
 
-  def pull_file_from_zoom(self, meeting_id: str, rm: bool = True) -> Dict:
+  def pull_file_from_zoom(self, meeting_id: str, rm: bool = True) -> Dict[str, Any]:
     """Interface for downloading recordings from Zoom. Optionally trashes recorded file on Zoom.
     Returns a dictionary containing success state and/or recording information.
 

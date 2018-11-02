@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ==============================================================================
-from typing import Dict, Union
+from typing import Dict, Union, Any
 
 import os
 import yaml
@@ -96,7 +96,7 @@ class ConfigInterface:
     # Load configuration
     self.__interface_factory()
 
-  def __load_config(self) -> Dict:
+  def __load_config(self) -> Dict[str, Any]:
     """Loads YAML configuration file to Python dictionary. Does some basic error checking to help
     with debugging bad configuration files.
     """
