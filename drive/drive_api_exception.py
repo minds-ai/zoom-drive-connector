@@ -32,7 +32,7 @@ class DriveAPIException(Exception):
 
     :return: String with exception contents.
     """
-    return 'DRIVE_API_FAILURE: {n}, {r}'.format(n=self.name, r=self.reason)
+    return f'DRIVE_API_FAILURE: {self.name}, {self.reason}'
 
   def __repr__(self) -> str:
     """Returns name of exception class.
