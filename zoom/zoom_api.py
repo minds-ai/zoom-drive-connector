@@ -19,7 +19,7 @@ import os
 import time
 import shutil
 import logging
-from typing import TypeVar, cast
+from typing import TypeVar, cast, Dict
 
 import requests
 import jwt
@@ -82,7 +82,7 @@ class ZoomAPI:
       raise ZoomAPIException(status_code, res.reason, res.request, self.message.get(
           status_code, ''))
 
-  def get_recording_url(self, meeting_id: str, auth: bytes) -> dict:
+  def get_recording_url(self, meeting_id: str, auth: bytes) -> Dict:
     """Given a specific meeting room ID and auth token, this function gets the download url
     for most recent recording in the given meeting room.
 
@@ -140,7 +140,7 @@ class ZoomAPI:
       shutil.copyfileobj(zoom_request.raw, source)  # Copy raw file data to local file.
     return outfile
 
-  def pull_file_from_zoom(self, meeting_id: str, rm: bool = True) -> dict:
+  def pull_file_from_zoom(self, meeting_id: str, rm: bool = True) -> Dict:
     """Interface for downloading recordings from Zoom. Optionally trashes recorded file on Zoom.
     Returns a dictionary containing success state and/or recording information.
 
@@ -150,6 +150,7 @@ class ZoomAPI:
       deleting the recording on Zoom completed successfully, include the recording date and the
       recording filename.
     """
+    result = {'success': False, 'date': None, 'filename': None}
     try:
       # Generate token and Authorization header.
       zoom_token = self.generate_jwt()
@@ -166,10 +167,11 @@ class ZoomAPI:
       if ze.http_method and ze.http_method == 'DELETE':
         log.log(logging.INFO, ze)
         # Allow other systems to proceed if delete fails.
-        return {'success': True}
+        result['success'] = True
+        return result
       log.log(logging.ERROR, ze)
-      return {'success': False}
+      return result
     except OSError as fe:
       # Catches general filesystem errors. If download could not be written to disk, stop.
       log.log(logging.ERROR, fe)
-      return {'success': False}
+      return result

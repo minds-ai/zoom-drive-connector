@@ -19,7 +19,7 @@ import yaml
 
 
 class APIConfigBase:
-  def __init__(self, settings_dict: dict):
+  def __init__(self, settings_dict: Dict):
     """Initializes key and secret values.
 
     :param settings_dict: dictionary of settings corresponding to specific service.
@@ -96,7 +96,7 @@ class ConfigInterface:
     # Load configuration
     self.__interface_factory()
 
-  def __load_config(self) -> dict:
+  def __load_config(self) -> Dict:
     """Loads YAML configuration file to Python dictionary. Does some basic error checking to help
     with debugging bad configuration files.
     """

@@ -13,7 +13,7 @@
 # limitations under the License.
 # ==============================================================================
 
-from typing import Union
+from typing import Optional
 from requests import PreparedRequest
 
 
@@ -21,7 +21,7 @@ class ZoomAPIException(Exception):
   def __init__(self,
                status_code: int,
                name: str,
-               method: Union[PreparedRequest, None],
+               method: Optional[PreparedRequest],
                message: str):
     """Initializes container for holding HTTP status information.
 
@@ -42,7 +42,7 @@ class ZoomAPIException(Exception):
 
     :return: formatted message containing exception information.
     """
-    return 'HTTP_STATUS: {c}-{n}, {m}'.format(c=self.status_code, n=self.name, m=self.message)
+    return f'HTTP_STATUS: {self.status_code}-{self.name}, {self.message}'
 
   def __repr__(self) -> str:
     """Returns class type when repr method called.

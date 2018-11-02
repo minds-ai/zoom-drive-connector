@@ -22,7 +22,6 @@ import apiclient
 from oauth2client import file, client, tools
 
 from drive import DriveAPIException
-
 from configuration import DriveConfig, SystemConfig, APIConfigBase
 
 log = logging.getLogger('app')
