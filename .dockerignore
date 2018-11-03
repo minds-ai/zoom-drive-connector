@@ -4,7 +4,6 @@
 # Do not copy configuration files
 conf/
 
-
 # Ignore git specific files
 .git/
 .gitignore
@@ -26,3 +25,6 @@ Makefile
 
 # Other files that should not be bundled
 **/*.md
+
+# Test directory.
+tests/
