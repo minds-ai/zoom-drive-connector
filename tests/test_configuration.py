@@ -1,6 +1,6 @@
 import unittest
-import configuration
 import os
+import configuration
 
 slack_config = {'channel_name': 'some_channel', 'key': 'random_key'}
 zoom_config = {'key': 'some_key',
@@ -37,9 +37,11 @@ class TestBaseClass(unittest.TestCase):
     self.assertTrue(self.base.exbool)
 
     with self.assertRaises(KeyError):
+      # pylint: disable=W0612
       test_value = self.base.test
 
     with self.assertRaises(KeyError):
+      # pylint: disable=W0612
       test_value = self.base.test.inner
 
 
@@ -52,11 +54,13 @@ class TestSlackConfig(unittest.TestCase):
   def test_getattr(self):
     self.assertEqual(self.slack.channel_name, 'some_channel')
     with self.assertRaises(KeyError):
+      # pylint: disable=W0612
       test_value = self.slack.random_value
 
   def test_registrar(self):
     self.assertTrue(configuration.SlackConfig.factory_registrar('slack'))
     self.assertFalse(configuration.SlackConfig.factory_registrar('zoom'))
+
 
 class TestZoomConfig(unittest.TestCase):
   zoom = configuration.ZoomConfig(zoom_config)
@@ -75,11 +79,13 @@ class TestZoomConfig(unittest.TestCase):
                      )
 
     with self.assertRaises(KeyError):
+      # pylint: disable=W0612
       test_value = self.zoom.random_value
 
   def test_registrar(self):
     self.assertTrue(configuration.ZoomConfig.factory_registrar('zoom'))
     self.assertFalse(configuration.ZoomConfig.factory_registrar('drive'))
+
 
 class TestDriveConfig(unittest.TestCase):
   drive = configuration.DriveConfig(drive_config)
@@ -94,6 +100,7 @@ class TestDriveConfig(unittest.TestCase):
     self.assertEqual(self.drive.credentials_json, '/tmp/credentials.json')
 
     with self.assertRaises(KeyError):
+      # pylint: disable=W0612
       test_value = self.drive.not_here
 
   def test_registrar(self):
@@ -111,6 +118,7 @@ class TestInternalConfig(unittest.TestCase):
     self.assertEqual(self.internal.target_folder, '/tmp')
 
     with self.assertRaises(KeyError):
+      # pylint: disable=W0612
       test_value = self.internal.random_value
 
   def test_registrar(self):
@@ -128,6 +136,7 @@ class TestConfigInterface(unittest.TestCase):
     self.assertEqual(zoom.username, 'email@example.com')
 
     with self.assertRaises(KeyError):
+      # pylint: disable=W0612
       test_value = zoom.email
 
   def test_getattr(self):

@@ -3,6 +3,7 @@ import unittest
 from requests import PreparedRequest
 from zoom import ZoomAPIException
 
+
 class TestZoomAPIException(unittest.TestCase):
   def test_throw_exception(self):
     with self.assertRaises(ZoomAPIException):
