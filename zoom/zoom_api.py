@@ -47,8 +47,6 @@ class ZoomAPI:
     self.zoom_config = cast(ZoomConfig, zoom_config)
     self.sys_config = cast(SystemConfig, sys_config)
 
-    # Information required to login to allow downloads
-    self.zoom_signin_url = ZoomURLS.signin.value
     self.timeout = 1800  # Default expiration time is 30 minutes.
 
     # Clarified HTTP status messages
@@ -128,7 +126,7 @@ class ZoomAPI:
     session.headers.update({'content-type': 'application/x-www-form-urlencoded'})
 
     session.post(
-        self.zoom_signin_url,
+        ZoomURLS.signin.value,
         data={'email': str(self.zoom_config.username),
               'password': str(self.zoom_config.password)})
 
