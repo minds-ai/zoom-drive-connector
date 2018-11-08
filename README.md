@@ -127,5 +127,5 @@ folder for examples. All tests should be written using the `unittests` framework
 
 To run tests, run the following commands:
 ```bash
-$ nosetests # In project root folder.
+$ python -m pytest tests/ # In project root folder.
 ```
