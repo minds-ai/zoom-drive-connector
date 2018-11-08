@@ -27,5 +27,5 @@ class TestDriveAPIException(unittest.TestCase):
     self.assertEqual(str(DriveAPIException('Test', 'Test reason.')),
                      'DRIVE_API_FAILURE: Test, Test reason.')
 
-  def test_repr_methpd(self):
+  def test_repr_method(self):
     self.assertEqual(repr(DriveAPIException('Test', 'Test reason')), 'DriveAPIException()')
