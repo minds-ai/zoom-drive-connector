@@ -16,7 +16,6 @@
 import datetime
 import time
 
-import unittest
 from unittest.mock import MagicMock
 
 import responses
@@ -25,29 +24,28 @@ import jwt
 
 from configuration import ZoomConfig, SystemConfig
 
+# pylint: disable=E0402
+from unittest_settings import TestSettingsBase
 
-class TestZoom(unittest.TestCase):
-  sys_config = SystemConfig({'target_folder': '/tmp'})
-  zoom_config = ZoomConfig({'key': 'some_key',
-                            'secret': 'some_secret',
-                            'username': 'some@email.com',
-                            'password': 's0mer4ndomv4lue!',
-                            'delete': True,
-                            'meetings': [
-                              {'id': 'first_id', 'name': 'meeting1'},
-                              {'id': 'second_id', 'name': 'meeting2'}
-                            ]})
-  api = zoom.ZoomAPI(zoom_config, sys_config)
+
+class TestZoom(TestSettingsBase):
+  def setUp(self):
+    super(TestZoom, self).setUp()
+
+    self.zoom_object = ZoomConfig(self.zoom_config)
+    self.sys_object = SystemConfig(self.internal_config)
+
+    self.api = zoom.ZoomAPI(self.zoom_object, self.sys_object)
 
   def test_generate_jwt(self):
-    good_token = jwt.encode({'iss': self.zoom_config.key, 'exp': int(time.time() + 1800)},
-                            str(self.zoom_config.secret),
+    good_token = jwt.encode({'iss': self.zoom_object.key, 'exp': int(time.time() + 1800)},
+                            str(self.zoom_object.secret),
                             algorithm='HS256')
 
     self.assertEqual(self.api.generate_jwt(), good_token)
 
     bad_token = jwt.encode({'iss': 'fake', 'exp': int(time.time())},
-                           str(self.zoom_config.secret),
+                           str(self.zoom_object.secret),
                            algorithm='HS256')
 
     self.assertNotEqual(self.api.generate_jwt(), bad_token)

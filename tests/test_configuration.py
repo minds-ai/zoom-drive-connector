@@ -17,20 +17,8 @@ import unittest
 import os
 import configuration
 
-slack_config = {'channel_name': 'some_channel', 'key': 'random_key'}
-zoom_config = {'key': 'some_key',
-               'secret': 'some_secret',
-               'username': 'some@email.com',
-               'password': 's0mer4ndomv4lue!',
-               'delete': True,
-               'meetings': [
-                 {'id': 'first_id', 'name': 'meeting1'},
-                 {'id': 'second_id', 'name': 'meeting2'}
-               ]}
-drive_config = {'credentials_json': '/tmp/credentials.json',
-                'client_secret_json': '/tmp/client_secrets.json',
-                'folder_id': 'some_id'}
-internal_config = {'target_folder': '/tmp'}
+# pylint: disable=E0402
+from unittest_settings import TestSettingsBase
 
 
 def touch(path):
@@ -39,8 +27,9 @@ def touch(path):
 
 
 class TestBaseClass(unittest.TestCase):
-  config = {'hello': 'world', 'inner': {'value': 2}, 'exlist': [1, 2], 'exbool': True}
-  base = configuration.APIConfigBase(config)
+  def setUp(self):
+    self.config = {'hello': 'world', 'inner': {'value': 2}, 'exlist': [1, 2], 'exbool': True}
+    self.base = configuration.APIConfigBase(self.config)
 
   def test_validation(self):
     self.assertTrue(self.base.validate())
@@ -60,8 +49,10 @@ class TestBaseClass(unittest.TestCase):
       test_value = self.base.test.inner
 
 
-class TestSlackConfig(unittest.TestCase):
-  slack = configuration.SlackConfig(slack_config)
+class TestSlackConfig(TestSettingsBase):
+  def setUp(self):
+    super(TestSlackConfig, self).setUp()
+    self.slack = configuration.SlackConfig(self.slack_config)
 
   def test_validation(self):
     self.assertTrue(self.slack.validate())
@@ -77,8 +68,10 @@ class TestSlackConfig(unittest.TestCase):
     self.assertFalse(configuration.SlackConfig.factory_registrar('zoom'))
 
 
-class TestZoomConfig(unittest.TestCase):
-  zoom = configuration.ZoomConfig(zoom_config)
+class TestZoomConfig(TestSettingsBase):
+  def setUp(self):
+    super(TestZoomConfig, self).setUp()
+    self.zoom = configuration.ZoomConfig(self.zoom_config)
 
   def test_validation(self):
     self.assertTrue(self.zoom.validate())
@@ -102,17 +95,23 @@ class TestZoomConfig(unittest.TestCase):
     self.assertFalse(configuration.ZoomConfig.factory_registrar('drive'))
 
 
-class TestDriveConfig(unittest.TestCase):
-  drive = configuration.DriveConfig(drive_config)
+class TestDriveConfig(TestSettingsBase):
+  def setUp(self):
+    super(TestDriveConfig, self).setUp()
+    self.drive = configuration.DriveConfig(self.drive_config)
+
+    # Create temporary configuration file for validation testing.
+    touch(f'{os.getenv("TMPDIR", "/tmp")}/client_secrets.json')
+
+  def tearDown(self):
+    # Remove temporary configuration file.
+    os.remove(f'{os.getenv("TMPDIR", "/tmp")}/client_secrets.json')
 
   def test_validation(self):
-    touch('/tmp/client_secrets.json')
     self.assertTrue(self.drive.validate())
 
-    os.remove('/tmp/client_secrets.json')
-
   def test_getattr(self):
-    self.assertEqual(self.drive.credentials_json, '/tmp/credentials.json')
+    self.assertEqual(self.drive.credentials_json, f'{os.getenv("TMPDIR", "/tmp")}/credentials.json')
 
     with self.assertRaises(KeyError):
       # pylint: disable=W0612
@@ -123,14 +122,16 @@ class TestDriveConfig(unittest.TestCase):
     self.assertFalse(configuration.DriveConfig.factory_registrar('random'))
 
 
-class TestInternalConfig(unittest.TestCase):
-  internal = configuration.SystemConfig(internal_config)
+class TestInternalConfig(TestSettingsBase):
+  def setUp(self):
+    super(TestInternalConfig, self).setUp()
+    self.internal = configuration.SystemConfig(self.internal_config)
 
   def test_validation(self):
     self.assertTrue(self.internal.validate())
 
   def test_getattr(self):
-    self.assertEqual(self.internal.target_folder, '/tmp')
+    self.assertEqual(self.internal.target_folder, os.getenv('TMPDIR', '/tmp'))
 
     with self.assertRaises(KeyError):
       # pylint: disable=W0612
@@ -142,9 +143,15 @@ class TestInternalConfig(unittest.TestCase):
 
 
 class TestConfigInterface(unittest.TestCase):
-  touch('/tmp/client_secrets.json')
-  interface = configuration.ConfigInterface(os.getcwd() + '/tests/test.yaml')
-  os.remove('/tmp/client_secrets.json')
+  def setUp(self):
+    # Create temporary configuration file for validation testing.
+    touch('/tmp/client_secrets.json')
+
+    self.interface = configuration.ConfigInterface(os.getcwd() + '/tests/test.yaml')
+
+  def tearDown(self):
+    # Remove temporary configuration file.
+    os.remove('/tmp/client_secrets.json')
 
   def test_nested_getattr(self):
     zoom = self.interface.zoom
