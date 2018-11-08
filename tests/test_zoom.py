@@ -37,18 +37,19 @@ class TestZoom(TestSettingsBase):
 
     self.api = zoom.ZoomAPI(self.zoom_object, self.sys_object)
 
-  def test_generate_jwt(self):
-    good_token = jwt.encode({'iss': self.zoom_object.key, 'exp': int(time.time() + 1800)},
-                            str(self.zoom_object.secret),
-                            algorithm='HS256')
+  def test_generate_jwt_valid_token(self):
+    token = jwt.encode({'iss': self.zoom_object.key, 'exp': int(time.time() + 1800)},
+                       str(self.zoom_object.secret),
+                       algorithm='HS256')
 
-    self.assertEqual(self.api.generate_jwt(), good_token)
+    self.assertEqual(self.api.generate_jwt(), token)
 
-    bad_token = jwt.encode({'iss': 'fake', 'exp': int(time.time())},
-                           str(self.zoom_object.secret),
-                           algorithm='HS256')
+  def test_generate_jwt_invalid_token(self):
+    token = jwt.encode({'iss': 'fake', 'exp': int(time.time())},
+                       str(self.zoom_object.secret),
+                       algorithm='HS256')
 
-    self.assertNotEqual(self.api.generate_jwt(), bad_token)
+    self.assertNotEqual(self.api.generate_jwt(), token)
 
   @responses.activate
   def test_delete_recording_errors(self):
