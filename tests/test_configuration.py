@@ -162,7 +162,7 @@ class TestConfigInterface(unittest.TestCase):
       test_value = zoom.email
 
   def test_getattr(self):
-    self.assertEqual(type(self.interface.drive), configuration.DriveConfig)
-    self.assertEqual(type(self.interface.zoom), configuration.ZoomConfig)
-    self.assertEqual(type(self.interface.slack), configuration.SlackConfig)
-    self.assertEqual(type(self.interface.internals), configuration.SystemConfig)
+    self.assertIsInstance(self.interface.drive, configuration.DriveConfig)
+    self.assertIsInstance(self.interface.zoom, configuration.ZoomConfig)
+    self.assertIsInstance(self.interface.slack, configuration.SlackConfig)
+    self.assertIsInstance(self.interface.internals, configuration.SystemConfig)
