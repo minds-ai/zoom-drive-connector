@@ -40,7 +40,7 @@ enable=indexing-exception,old-raise-syntax
 # --disable=W"
 #
 #disable=design,similarities,no-self-use,attribute-defined-outside-init,locally-disabled,star-args,pointless-except,bad-option-value,global-statement,fixme,suppressed-message,useless-suppression,locally-enabled,no-member,no-name-in-module,import-error,unsubscriptable-object,unbalanced-tuple-unpacking,undefined-variable,not-context-manager
-disable=bad-continuation,missing-docstring,no-self-use,attribute-defined-outside-init,locally-disabled,no-name-in-module,redefined-outer-name,too-few-public-methods,not-context-manager,import-error,logging-format-interpolation,invalid-name
+disable=bad-continuation,missing-docstring,no-self-use,attribute-defined-outside-init,locally-disabled,no-name-in-module,redefined-outer-name,too-few-public-methods,not-context-manager,import-error,logging-format-interpolation
 
 
 # Set the cache size for astng objects.

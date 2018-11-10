@@ -24,11 +24,12 @@ import jwt
 
 from configuration import ZoomConfig, SystemConfig
 
-# pylint: disable=E0402
+# pylint: disable=relative-beyond-top-level
 from unittest_settings import TestSettingsBase
 
 
 class TestZoom(TestSettingsBase):
+  # pylint: disable=invalid-name
   def setUp(self):
     super(TestZoom, self).setUp()
 

@@ -21,7 +21,7 @@ from configuration import SlackConfig
 
 class TestSlack(unittest.TestCase):
   def setUp(self):
-    self.config_dict = slack_config = {'channel_name': 'some_channel', 'key': 'random_key'}
+    self.config_dict = {'channel_name': 'some_channel', 'key': 'random_key'}
     self.conf = SlackConfig(self.config_dict)
     self.api = slack.SlackAPI(self.conf)
 

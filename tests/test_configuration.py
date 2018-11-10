@@ -17,7 +17,7 @@ import unittest
 import os
 import configuration
 
-# pylint: disable=E0402
+# pylint: disable=relative-beyond-top-level
 from unittest_settings import TestSettingsBase
 
 
@@ -27,6 +27,7 @@ def touch(path):
 
 
 class TestBaseClass(unittest.TestCase):
+  # pylint: disable=invalid-name
   def setUp(self):
     self.config = {'hello': 'world', 'inner': {'value': 2}, 'exlist': [1, 2], 'exbool': True}
     self.base = configuration.APIConfigBase(self.config)
@@ -41,15 +42,16 @@ class TestBaseClass(unittest.TestCase):
     self.assertTrue(self.base.exbool)
 
     with self.assertRaises(KeyError):
-      # pylint: disable=W0612
+      # pylint: disable=unused-variable
       test_value = self.base.test
 
     with self.assertRaises(KeyError):
-      # pylint: disable=W0612
+      # pylint: disable=unused-variable
       test_value = self.base.test.inner
 
 
 class TestSlackConfig(TestSettingsBase):
+  # pylint: disable=invalid-name
   def setUp(self):
     super(TestSlackConfig, self).setUp()
     self.slack = configuration.SlackConfig(self.slack_config)
@@ -60,7 +62,7 @@ class TestSlackConfig(TestSettingsBase):
   def test_getattr(self):
     self.assertEqual(self.slack.channel_name, 'some_channel')
     with self.assertRaises(KeyError):
-      # pylint: disable=W0612
+      # pylint: disable=unused-variable
       test_value = self.slack.random_value
 
   def test_registrar(self):
@@ -69,6 +71,7 @@ class TestSlackConfig(TestSettingsBase):
 
 
 class TestZoomConfig(TestSettingsBase):
+  # pylint: disable=invalid-name
   def setUp(self):
     super(TestZoomConfig, self).setUp()
     self.zoom = configuration.ZoomConfig(self.zoom_config)
@@ -87,7 +90,7 @@ class TestZoomConfig(TestSettingsBase):
                      )
 
     with self.assertRaises(KeyError):
-      # pylint: disable=W0612
+      # pylint: disable=unused-variable
       test_value = self.zoom.random_value
 
   def test_registrar(self):
@@ -96,6 +99,7 @@ class TestZoomConfig(TestSettingsBase):
 
 
 class TestDriveConfig(TestSettingsBase):
+  # pylint: disable=invalid-name
   def setUp(self):
     super(TestDriveConfig, self).setUp()
     self.drive = configuration.DriveConfig(self.drive_config)
@@ -114,7 +118,7 @@ class TestDriveConfig(TestSettingsBase):
     self.assertEqual(self.drive.credentials_json, f'{os.getenv("TMPDIR", "/tmp")}/credentials.json')
 
     with self.assertRaises(KeyError):
-      # pylint: disable=W0612
+      # pylint: disable=unused-variable
       test_value = self.drive.not_here
 
   def test_registrar(self):
@@ -123,6 +127,7 @@ class TestDriveConfig(TestSettingsBase):
 
 
 class TestInternalConfig(TestSettingsBase):
+  # pylint: disable=invalid-name
   def setUp(self):
     super(TestInternalConfig, self).setUp()
     self.internal = configuration.SystemConfig(self.internal_config)
@@ -134,7 +139,7 @@ class TestInternalConfig(TestSettingsBase):
     self.assertEqual(self.internal.target_folder, os.getenv('TMPDIR', '/tmp'))
 
     with self.assertRaises(KeyError):
-      # pylint: disable=W0612
+      # pylint: disable=unused-variable
       test_value = self.internal.random_value
 
   def test_registrar(self):
@@ -143,6 +148,7 @@ class TestInternalConfig(TestSettingsBase):
 
 
 class TestConfigInterface(unittest.TestCase):
+  # pylint: disable=invalid-name
   def setUp(self):
     # Create temporary configuration file for validation testing.
     touch('/tmp/client_secrets.json')
@@ -158,7 +164,7 @@ class TestConfigInterface(unittest.TestCase):
     self.assertEqual(zoom.username, 'email@example.com')
 
     with self.assertRaises(KeyError):
-      # pylint: disable=W0612
+      # pylint: disable=unused-variable
       test_value = zoom.email
 
   def test_getattr(self):
