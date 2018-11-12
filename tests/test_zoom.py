@@ -18,6 +18,7 @@ import time
 
 from unittest.mock import MagicMock
 
+import os
 import responses
 import zoom
 import jwt
@@ -28,6 +29,7 @@ from configuration import ZoomConfig, SystemConfig
 from unittest_settings import TestSettingsBase
 
 
+# pylint: disable=too-many-instance-attributes
 class TestZoom(TestSettingsBase):
   # pylint: disable=invalid-name
   def setUp(self):
@@ -42,6 +44,8 @@ class TestZoom(TestSettingsBase):
     self.single_recording_url = 'https://api.zoom.us/v2/meetings/some-meeting-id/recordings/rid'
     self.single_meeting_recording_info_url = 'https://api.zoom.us/v2/meetings/some-meeting-id/' \
                                              'recordings'
+    self.single_recording_download = 'https://mindsai.zoom.us/recording/share/random-uid'
+    self.signin_url = 'https://api.zoom.us/signin'
 
     # Test JSON payload to be returned from querying specific meeting ID for recordings.
     self.recording_return_payload = {'recording_files': [{
@@ -102,9 +106,13 @@ class TestZoom(TestSettingsBase):
 
   @responses.activate
   def test_downloading_file(self):
-    pass
-    # TODO: Not really sure how to test a streaming file download.
-    # TODO(nick): This method needs to have more rigorous exception checking.
+    responses.add(responses.POST, self.signin_url, status=200)
+    responses.add(responses.GET, self.single_recording_download, status=200, stream=True)
+
+    self.assertEqual(self.api.download_recording(self.single_recording_download),
+                     '/tmp/random-uid.mp4')
+
+    os.remove('/tmp/random-uid.mp4')
 
   @responses.activate
   def test_handling_zoom_errors_file_pull(self):

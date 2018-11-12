@@ -135,7 +135,7 @@ class TestInternalConfig(TestSettingsBase):
     self.assertTrue(self.internal.validate())
 
   def test_getattr(self):
-    self.assertEqual(self.internal.target_folder, os.getenv('TMPDIR', '/tmp'))
+    self.assertEqual(self.internal.target_folder, '/tmp')
 
     with self.assertRaises(KeyError):
       # pylint: disable=unused-variable
