@@ -16,7 +16,7 @@
 import logging
 import os
 import time
-from typing import TypeVar, cast, Dict
+from typing import TypeVar, cast, Dict, List
 
 import schedule
 
@@ -29,7 +29,7 @@ import configuration as config
 S = TypeVar("S", bound=config.APIConfigBase)
 
 
-def download(zoom_conn: zoom.ZoomAPI, zoom_conf: config.ZoomConfig) -> list:
+def download(zoom_conn: zoom.ZoomAPI, zoom_conf: config.ZoomConfig) -> List[Dict[str, str]]:
   """Downloads all available recordings from Zoom and returns a list of dicts with all relevant
   information about the recording.
 
@@ -44,8 +44,8 @@ def download(zoom_conn: zoom.ZoomAPI, zoom_conf: config.ZoomConfig) -> list:
   for meeting in zoom_conf.meetings:  # type: ignore
     meeting = cast(Dict, meeting)
     res = zoom_conn.pull_file_from_zoom(meeting['id'], rm=bool(zoom_conf.delete))
-    if (res['success']) and ('filename' in res):
-      name = '{}-{}.mp4'.format(res['date'].strftime('%Y%m%d'), meeting['name'])
+    if (res['success']) and (res['filename']):
+      name = f'{res["date"].strftime("%Y%m%d")}-{meeting["name"]}.mp4'
 
       result.append({'meeting': meeting['name'],
                      'file': res['filename'],
@@ -55,7 +55,7 @@ def download(zoom_conn: zoom.ZoomAPI, zoom_conf: config.ZoomConfig) -> list:
   return result
 
 
-def upload_and_notify(files: list, drive_conn: drive.DriveAPI, slack_conn: slack.SlackAPI):
+def upload_and_notify(files: List, drive_conn: drive.DriveAPI, slack_conn: slack.SlackAPI):
   """Uploads a list of files from the local filesystem to Google Drive.
 
   :param files: list of dictionaries containing file information.
@@ -68,10 +68,8 @@ def upload_and_notify(files: list, drive_conn: drive.DriveAPI, slack_conn: slack
       file_url = drive_conn.upload_file(file['file'], file['name'])
 
       # Only post message if the upload worked.
-      message = 'The recording of _{}_ on _{} UTC_ is <{}| now available>.'.format(
-        file['meeting'],
-        file['date'],
-        file_url)
+      message = f'The recording of _{file["meeting"]}_ on _{file["date"]} UTC_ is <{file_url}| ' \
+                f'now available>.'
       slack_conn.post_message(message)
     except drive.DriveAPIException as e:
       raise e

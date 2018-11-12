@@ -1,3 +1,5 @@
+# type: ignore # pylint: disable=no-member
+
 # Copyright 2018 Minds.ai, Inc. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,14 +14,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ==============================================================================
-from typing import Dict, Union
+from typing import Dict, Union, Any
 
+import logging
 import os
 import yaml
 
+log = logging.getLogger('app')
+
 
 class APIConfigBase:
-  def __init__(self, settings_dict: dict):
+  def __init__(self, settings_dict: Dict):
     """Initializes key and secret values.
 
     :param settings_dict: dictionary of settings corresponding to specific service.
@@ -96,7 +101,7 @@ class ConfigInterface:
     # Load configuration
     self.__interface_factory()
 
-  def __load_config(self) -> dict:
+  def __load_config(self) -> Dict[str, Any]:
     """Loads YAML configuration file to Python dictionary. Does some basic error checking to help
     with debugging bad configuration files.
     """
@@ -104,13 +109,12 @@ class ConfigInterface:
       with open(self.file, 'r') as f:
         return yaml.safe_load(f)
     except yaml.YAMLError as ye:
-      print('Error in YAML file {f}'.format(f=self.file))
+      log.log(logging.ERROR, f'Error in YAML file {self.file}')
 
       # If the error can be identified, print it to the console.
-      # pylint: disable=no-member
       if hasattr(ye, 'problem_mark'):
-        print('Position ({line}, {col})'.format(line=ye.problem_mark + 1,  # type: ignore
-                                                col=ye.problem_mark + 1))  # type: ignore
+        log.log(logging.INFO, f'Error at position ({ye.problem_mark.line + 1}, '
+                              f'{ye.problem_mark.column + 1})')
 
       raise SystemExit  # Crash program
 

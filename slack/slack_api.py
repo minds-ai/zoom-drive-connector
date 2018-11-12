@@ -17,7 +17,6 @@ import logging
 from typing import Union, TypeVar, cast
 
 from slackclient import SlackClient
-
 from configuration import SlackConfig, APIConfigBase
 
 log = logging.getLogger('app')

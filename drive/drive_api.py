@@ -22,7 +22,6 @@ import apiclient
 from oauth2client import file, client, tools
 
 from drive import DriveAPIException
-
 from configuration import DriveConfig, SystemConfig, APIConfigBase
 
 log = logging.getLogger('app')
@@ -76,7 +75,7 @@ class DriveAPI:
     if not file_path or not os.path.exists(file_path):
       # Raise an exception if the specified file doesn't exist.
       raise DriveAPIException(
-          name='File error', reason='{f} could not be found.'.format(f=file_path))
+          name='File error', reason=f'{file_path} could not be found.')
 
     # Google Drive file metadata
     metadata = {'name': name, 'parents': [self.drive_config.folder_id]}
@@ -90,7 +89,7 @@ class DriveAPI:
         .create(body=metadata, media_body=media, fields='webViewLink', supportsTeamDrives=True)\
         .execute()
 
-    log.log(logging.INFO, 'File {} uploaded to Google Drive'.format(file_path))
+    log.log(logging.INFO, f'File {file_path} uploaded to Google Drive')
 
     # Return the url to the file that was just uploaded.
     return uploaded_file.get('webViewLink')
