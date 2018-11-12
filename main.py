@@ -45,7 +45,7 @@ def download(zoom_conn: zoom.ZoomAPI, zoom_conf: config.ZoomConfig) -> List[Dict
     meeting = cast(Dict, meeting)
     res = zoom_conn.pull_file_from_zoom(meeting['id'], rm=bool(zoom_conf.delete))
     if (res['success']) and (res['filename']):
-      name = '{}-{}.mp4'.format(res['date'].strftime('%Y%m%d'), meeting['name'])
+      name = f'{res["date"].strftime("%Y%m%d")}-{meeting["name"]}.mp4'
 
       result.append({'meeting': meeting['name'],
                      'file': res['filename'],
@@ -68,10 +68,8 @@ def upload_and_notify(files: List, drive_conn: drive.DriveAPI, slack_conn: slack
       file_url = drive_conn.upload_file(file['file'], file['name'])
 
       # Only post message if the upload worked.
-      message = 'The recording of _{}_ on _{} UTC_ is <{}| now available>.'.format(
-        file['meeting'],
-        file['date'],
-        file_url)
+      message = f'The recording of _{file["meeting"]}_ on _{file["date"]} UTC_ is <{file_url}| ' \
+                f'now available>.'
       slack_conn.post_message(message)
     except drive.DriveAPIException as e:
       raise e

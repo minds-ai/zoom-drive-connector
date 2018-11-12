@@ -159,7 +159,7 @@ class ZoomAPI:
 
       if rm:
         self.delete_recording(meeting_id, res['id'], zoom_token)
-      log.log(logging.INFO, 'File {} downloaded for meeting {}.'.format(filename, meeting_id))
+      log.log(logging.INFO, f'File {filename} downloaded for meeting {meeting_id}.')
       return {'success': True, 'date': res['date'], 'filename': filename}
     except ZoomAPIException as ze:
       if ze.http_method and ze.http_method == 'DELETE':
