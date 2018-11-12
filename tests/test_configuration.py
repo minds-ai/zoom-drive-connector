@@ -179,7 +179,7 @@ class TestConfigInterface(unittest.TestCase):
 
       self.config_file_name = f.name
 
-    self.interface = configuration.ConfigInterface(self.config_file_name)
+    self.valid_interface = configuration.ConfigInterface(self.config_file_name)
 
   def tearDown(self):
     # Remove temporary configuration file.
@@ -187,7 +187,7 @@ class TestConfigInterface(unittest.TestCase):
     os.remove(self.secrets_file_name)
 
   def test_nested_getattr(self):
-    zoom = self.interface.zoom
+    zoom = self.valid_interface.zoom
     self.assertEqual(zoom.username, 'email@example.com')
 
     with self.assertRaises(KeyError):
@@ -195,7 +195,43 @@ class TestConfigInterface(unittest.TestCase):
       test_value = zoom.email
 
   def test_getattr(self):
-    self.assertIsInstance(self.interface.drive, configuration.DriveConfig)
-    self.assertIsInstance(self.interface.zoom, configuration.ZoomConfig)
-    self.assertIsInstance(self.interface.slack, configuration.SlackConfig)
-    self.assertIsInstance(self.interface.internals, configuration.SystemConfig)
+    self.assertIsInstance(self.valid_interface.drive, configuration.DriveConfig)
+    self.assertIsInstance(self.valid_interface.zoom, configuration.ZoomConfig)
+    self.assertIsInstance(self.valid_interface.slack, configuration.SlackConfig)
+    self.assertIsInstance(self.valid_interface.internals, configuration.SystemConfig)
+
+  def test_empty_config_file(self):
+    with tempfile.NamedTemporaryFile(suffix='.yaml') as f:
+      with self.assertRaises(AttributeError):
+        configuration.ConfigInterface(f.name)
+
+  def test_bad_config(self):
+    bad_config_document = """
+    zoom:
+      key: "zoom_api_key"
+      secret: "zoom_api_secret"
+      username: "email@example.com"
+      password: "password for email@example.com"
+      delete: true
+      meetings:
+        - {id: "meeting_id" , name: "Meeting Name"}
+        - {id: "meeting_id2" , name: "Second Meeting Name"}
+    drive:
+      credentials_json: "/tmp/credentials.json"
+      client_secret_json: "/tmp/client_secrets.json"
+      folder_id: "Some Google Drive Folder ID"
+    slack:
+      channel: "channel_name"
+      key: "slack_api_key"
+    internals:
+      target_folder: /tmp
+    """
+
+    with tempfile.NamedTemporaryFile(suffix='.yaml') as f:
+      enc_doc = bad_config_document.encode('utf-8')
+      f.write(bytes(enc_doc))
+
+      f.read()  # Not sure why this is necessary for this test to pass. Test fails otherwise.
+
+      with self.assertRaises(RuntimeError):
+        configuration.ConfigInterface(f.name)
