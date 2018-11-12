@@ -1,3 +1,5 @@
+# type: ignore # pylint: disable=no-member
+
 # Copyright 2018 Minds.ai, Inc. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,8 +16,11 @@
 # ==============================================================================
 from typing import Dict, Union, Any
 
+import logging
 import os
 import yaml
+
+log = logging.getLogger('app')
 
 
 class APIConfigBase:
@@ -104,13 +109,12 @@ class ConfigInterface:
       with open(self.file, 'r') as f:
         return yaml.safe_load(f)
     except yaml.YAMLError as ye:
-      print('Error in YAML file {f}'.format(f=self.file))
+      log.log(logging.ERROR, f'Error in YAML file {self.file}')
 
       # If the error can be identified, print it to the console.
-      # pylint: disable=no-member
       if hasattr(ye, 'problem_mark'):
-        print('Position ({line}, {col})'.format(line=ye.problem_mark + 1,  # type: ignore
-                                                col=ye.problem_mark + 1))  # type: ignore
+        log.log(logging.INFO, f'Error at position ({ye.problem_mark.line + 1}, '
+                              f'{ye.problem_mark.column + 1})')
 
       raise SystemExit  # Crash program
 
