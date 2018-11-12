@@ -120,3 +120,12 @@ To run the program in the conda environment you can use the following command li
 ```bash
 CONFIG=conf/config.yaml python -u main.py --noauth_local_webserver
 ```
+
+### Running Tests
+All new functionality should have accompanying unit tests. Look at the `tests/`
+folder for examples. All tests should be written using the `unittests` framework.
+
+To run tests, run the following commands:
+```bash
+$ python -m pytest tests/ # In project root folder.
+```
