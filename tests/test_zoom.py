@@ -51,7 +51,7 @@ class TestZoom(TestSettingsBase):
     self.recording_return_payload = {'recording_files': [{
                                      'file_type': 'MP4',
                                      'recording_start': '2018-01-01T01:01:01Z',
-                                     'download_url': 'https://example.com/download',
+                                     'download_url': self.single_recording_download,
                                      'id': 'some-recording-id'
                                      }]}
 
@@ -84,7 +84,7 @@ class TestZoom(TestSettingsBase):
     self.assertEqual(self.api.get_recording_url('some-meeting-id', b'token'),
                      {'date': datetime.datetime(2018, 1, 1, 1, 1, 1),
                       'id': 'some-recording-id',
-                      'url': 'https://example.com/download'}
+                      'url': self.single_recording_download}
                      )
 
   @responses.activate
@@ -115,13 +115,32 @@ class TestZoom(TestSettingsBase):
     os.remove('/tmp/random-uid.mp4')
 
   @responses.activate
+  def test_delete_meeting_recording(self):
+    # For downloading recording.
+    responses.add(responses.POST, self.signin_url, status=200)
+    responses.add(responses.GET, self.single_recording_download, status=200, stream=True)
+
+    # For sending DELETE http request for
+    responses.add(responses.DELETE, self.single_meeting_recording_info_url, status=200,
+                  json=self.recording_return_payload)
+
+    self.assertEqual(self.api.pull_file_from_zoom('some-meeting-id', True),
+                     {'success': False, 'date': None, 'filename': None})
+
+  @responses.activate
+  def test_delete_chat_transcript(self):
+    responses.add(responses.DELETE, self.single_meeting_recording_info_url, status=200,
+                  json={'recording_files': [{'file_type': 'CHAT'}]})
+
+    self.assertEqual(self.api.pull_file_from_zoom('some-meeting-id', True),
+                     {'success': False, 'date': None, 'filename': None})
+
+  @responses.activate
   def test_handling_zoom_errors_file_pull(self):
     responses.add(responses.GET, self.single_meeting_recording_info_url, status=404)
 
     self.assertEqual(self.api.pull_file_from_zoom('some-meeting-id', True),
                      {'success': False, 'date': None, 'filename': None})
-
-    # TODO: handle calling delete method. However, this relies on previous test being completed.
 
   @responses.activate
   def test_filesystem_errors_file_pull(self):
