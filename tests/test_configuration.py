@@ -14,16 +14,12 @@
 # ==============================================================================
 
 import unittest
+import tempfile
 import os
 import configuration
 
 # pylint: disable=relative-beyond-top-level
 from unittest_settings import TestSettingsBase
-
-
-def touch(path):
-  with open(path, 'a'):
-    os.utime(path, None)
 
 
 class TestBaseClass(unittest.TestCase):
@@ -105,17 +101,20 @@ class TestDriveConfig(TestSettingsBase):
     self.drive = configuration.DriveConfig(self.drive_config)
 
     # Create temporary configuration file for validation testing.
-    touch(f'{os.getenv("TMPDIR", "/tmp")}/client_secrets.json')
+    with tempfile.NamedTemporaryFile(delete=False, suffix='.json') as f:
+      self.secrets_file_name = f.name
+
+    self.drive_config['client_secret_json'] = self.secrets_file_name
 
   def tearDown(self):
     # Remove temporary configuration file.
-    os.remove(f'{os.getenv("TMPDIR", "/tmp")}/client_secrets.json')
+    os.remove(self.secrets_file_name)
 
   def test_validation(self):
     self.assertTrue(self.drive.validate())
 
   def test_getattr(self):
-    self.assertEqual(self.drive.credentials_json, f'{os.getenv("TMPDIR", "/tmp")}/credentials.json')
+    self.assertEqual(self.drive.credentials_json, '/tmp/credentials.json')
 
     with self.assertRaises(KeyError):
       # pylint: disable=unused-variable
@@ -150,14 +149,42 @@ class TestInternalConfig(TestSettingsBase):
 class TestConfigInterface(unittest.TestCase):
   # pylint: disable=invalid-name
   def setUp(self):
-    # Create temporary configuration file for validation testing.
-    touch('/tmp/client_secrets.json')
+    with tempfile.NamedTemporaryFile(delete=False, suffix='.json') as f:
+      self.secrets_file_name = f.name
 
-    self.interface = configuration.ConfigInterface(os.getcwd() + '/tests/test.yaml')
+    config_document = (
+      'zoom:\n'
+      '  key: "zoom_api_key"\n'
+      '  secret: "zoom_api_secret"\n'
+      '  username: "email@example.com"\n'
+      '  password: "password for email@example.com"\n'
+      '  delete: true\n'
+      '  meetings:\n'
+      '    - {id: "meeting_id" , name: "Meeting Name"}\n'
+      '    - {id: "meeting_id2" , name: "Second Meeting Name"}\n'
+      'drive:\n'
+      '  credentials_json: "/tmp/credentials.json"\n'
+      f'  client_secret_json: "{self.secrets_file_name}"\n'
+      '  folder_id: "Some Google Drive Folder ID"\n'
+      'slack:\n'
+      '  channel: "channel_name"\n'
+      '  key: "slack_api_key"\n'
+      'internals:\n'
+      '  target_folder: /tmp'
+    )
+
+    with tempfile.NamedTemporaryFile(delete=False, suffix='.yaml') as f:
+      enc_doc = config_document.encode('utf-8')
+      f.write(bytes(enc_doc))
+
+      self.config_file_name = f.name
+
+    self.interface = configuration.ConfigInterface(self.config_file_name)
 
   def tearDown(self):
     # Remove temporary configuration file.
-    os.remove('/tmp/client_secrets.json')
+    os.remove(self.config_file_name)
+    os.remove(self.secrets_file_name)
 
   def test_nested_getattr(self):
     zoom = self.interface.zoom

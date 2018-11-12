@@ -29,7 +29,7 @@ class TestSettingsBase(unittest.TestCase):
                           {'id': 'first_id', 'name': 'meeting1'},
                           {'id': 'second_id', 'name': 'meeting2'}
                         ]}
-    self.drive_config = {'credentials_json': f'{os.getenv("TMPDIR", "/tmp")}/credentials.json',
-                    'client_secret_json': f'{os.getenv("TMPDIR", "/tmp")}/client_secrets.json',
-                    'folder_id': 'some_id'}
+    self.drive_config = {'credentials_json': '/tmp/credentials.json',
+                         'client_secret_json': '/tmp/client_secrets.json',
+                         'folder_id': 'some_id'}
     self.internal_config = {'target_folder': os.getenv("TMPDIR", "/tmp")}
