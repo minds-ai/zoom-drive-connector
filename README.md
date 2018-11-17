@@ -1,12 +1,12 @@
 # Zoom-Drive-Connector
 
-This program downloads meeting recording from Zoom and uploads them to a 
-specific folder on Google Drive. It's that simple.
+This program downloads meeting recordings from Zoom and uploads them to a 
+specific folder on Google Drive.
 
 This software is particularly helpful for archiving recorded meetings and 
 webinars on Zoom. It can also be used to distribute VODs (videos on demand) to
 public folder in Google Drive. This software aims to fill a missing piece of 
-functionality in Zoom (after-the-fact video sharing).
+functionality in Zoom (post-meeting recording sharing).
 
 ## Setup
 Clone the repository on to your machine. Create a file called `config.yaml` with 
@@ -29,7 +29,7 @@ slack:
   channel: "channel_name"
   key: "slack_api_key"
 internals:
-  target_folder: /tmp
+  target_folder: "/tmp"
 ``` 
 *Note:* It is advised to place this file in the `conf` folder (together with the json credentials)
 this folder needs to be referenced when you launch the Docker container (see below).
@@ -68,7 +68,7 @@ is required. Enter it and click on "save".
 10. Now under "OAuth 2.0 client IDs" download the JSON file for the newly create client ID 
 11. Save this file as `client_secrets.json` in the `conf` directory.
 
-The `credentials` file will be created during the first start (see below)
+The `credentials` file will be created during the first start (see below).
 
 ### Slack
 1. Register a new app using [this link](https://api.slack.com/apps/new).
@@ -113,8 +113,8 @@ $ source activate zoom-drive-connector
 
 Any changes to dependencies should be recorded in **both** `environment.yml` and
 `requirements.txt` with the exception of development dependencies, which 
-only have to be placed in `environment.yml`. Make sure to record the version of the package
-you are adding using the double-equal operator.
+only have to be placed in `environment.yml`. Make sure to record the version of the 
+package you are adding using the double-equal operator.
 
 To run the program in the conda environment you can use the following command line:
 ```bash
@@ -129,3 +129,15 @@ To run tests, run the following commands:
 ```bash
 $ python -m pytest tests/ # In project root folder.
 ```
+
+## Contributing
+This project is open to public contributions. Fork the project, make any changes you
+want, and submit a pull request. Your changes will be reviewed before they are merged
+into master.
+
+## Authors
+- [Nick Pleatsikas](https://github.com/MrFlynn)
+- [Jeroen Bédorf](https://github.com/jbedorf)
+
+## License
+This project is licensed under [Apache 2.0](LICENSE).
