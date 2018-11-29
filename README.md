@@ -16,7 +16,6 @@ zoom:
   key: "zoom_api_key"
   secret: "zoom_api_secret"
   username: "email@example.com"
-  password: "password for email@example.com" # required to download files from Zoom.
   delete: true
   meetings: 
     - {id: "meeting_id" , name: "Meeting Name"}
@@ -43,11 +42,10 @@ To get the proper API key and secret, you will need to use the following
 "Getting Started Guide" on Zoom's developer site. Link [here](https://developer.zoom.us/docs/windows/introduction-and-pre-requisite/).
 Paste the API key and secret into `config.yaml` under the `zoom` section.
 
-It is (currently) not possible to download the recordings via the API key. 
-As such you need to create a new Zoom user within your organizations Zoom account. 
-This can be a non-pro user. It is important that this user logs in via a username 
-and password. The username and password for this account should be added 
-to the `username` and `password` entries under the `zoom` section.
+It is (currently) not possible to download the recordings via the API key only. 
+As such you need to specify a user that is part of your organizations Zoom account. 
+This can be a non-pro user. The e-mail of the user should be added
+to the `username` entry under the `zoom` section.
 
 ### Google Drive
 To upload files to Google Drive you have to login to your developer console, create a new project,
