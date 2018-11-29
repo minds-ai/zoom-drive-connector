@@ -39,13 +39,13 @@ class TestZoom(TestSettingsBase):
     self.sys_object = SystemConfig(self.internal_config)
 
     self.api = zoom.ZoomAPI(self.zoom_object, self.sys_object)
-
+    print(self.zoom_object.username)
     # URLs
     self.single_recording_url = 'https://api.zoom.us/v2/meetings/some-meeting-id/recordings/rid'
     self.single_meeting_recording_info_url = 'https://api.zoom.us/v2/meetings/some-meeting-id/' \
                                              'recordings'
     self.single_recording_download = 'https://mindsai.zoom.us/recording/share/random-uid'
-    self.signin_url = 'https://api.zoom.us/signin'
+    self.zak_token_url = f'https://api.zoom.us/v2/users/{self.zoom_object.username}/token'
 
     # Test JSON payload to be returned from querying specific meeting ID for recordings.
     self.recording_return_payload = {'recording_files': [{
@@ -54,6 +54,8 @@ class TestZoom(TestSettingsBase):
                                      'download_url': self.single_recording_download,
                                      'id': 'some-recording-id'
                                      }]}
+    # Test JSON payload as returned by the zak token request
+    self.zak_token_return_payload = {'token': 'token'}
 
   def test_generate_jwt_valid_token(self):
     token = jwt.encode({'iss': self.zoom_object.key, 'exp': int(time.time() + 1800)},
@@ -106,10 +108,12 @@ class TestZoom(TestSettingsBase):
 
   @responses.activate
   def test_downloading_file(self):
-    responses.add(responses.POST, self.signin_url, status=200)
+    responses.add(responses.GET, self.zak_token_url, status=200, json=self.zak_token_return_payload)
+
+    #TODO(jbedorf): Add some failure requests
     responses.add(responses.GET, self.single_recording_download, status=200, stream=True)
 
-    self.assertEqual(self.api.download_recording(self.single_recording_download),
+    self.assertEqual(self.api.download_recording(self.single_recording_download, b'token'),
                      '/tmp/random-uid.mp4')
 
     os.remove('/tmp/random-uid.mp4')
@@ -117,9 +121,7 @@ class TestZoom(TestSettingsBase):
   @responses.activate
   def test_delete_meeting_recording(self):
     # For downloading recording.
-    responses.add(responses.POST, self.signin_url, status=200)
     responses.add(responses.GET, self.single_recording_download, status=200, stream=True)
-
     # For sending DELETE http request for
     responses.add(responses.DELETE, self.single_meeting_recording_info_url, status=200,
                   json=self.recording_return_payload)
