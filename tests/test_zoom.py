@@ -20,11 +20,12 @@ from unittest.mock import MagicMock
 
 import os
 import responses
-import zoom
 import jwt
+import zoom
 
 from configuration import ZoomConfig, SystemConfig
 
+# pylint: disable=no-member
 # pylint: disable=relative-beyond-top-level
 from unittest_settings import TestSettingsBase
 
@@ -39,7 +40,6 @@ class TestZoom(TestSettingsBase):
     self.sys_object = SystemConfig(self.internal_config)
 
     self.api = zoom.ZoomAPI(self.zoom_object, self.sys_object)
-    print(self.zoom_object.username)
     # URLs
     self.single_recording_url = 'https://api.zoom.us/v2/meetings/some-meeting-id/recordings/rid'
     self.single_meeting_recording_info_url = 'https://api.zoom.us/v2/meetings/some-meeting-id/' \
@@ -48,26 +48,34 @@ class TestZoom(TestSettingsBase):
     self.zak_token_url = f'https://api.zoom.us/v2/users/{self.zoom_object.username}/token'
 
     # Test JSON payload to be returned from querying specific meeting ID for recordings.
-    self.recording_return_payload = {'recording_files': [{
-                                     'file_type': 'MP4',
-                                     'recording_start': '2018-01-01T01:01:01Z',
-                                     'download_url': self.single_recording_download,
-                                     'id': 'some-recording-id'
-                                     }]}
+    self.recording_return_payload = {
+        'recording_files': [{
+            'file_type': 'MP4',
+            'recording_start': '2018-01-01T01:01:01Z',
+            'download_url': self.single_recording_download,
+            'id': 'some-recording-id'
+        }]
+    }
     # Test JSON payload as returned by the zak token request
     self.zak_token_return_payload = {'token': 'token'}
 
   def test_generate_jwt_valid_token(self):
-    token = jwt.encode({'iss': self.zoom_object.key, 'exp': int(time.time() + 1800)},
-                       str(self.zoom_object.secret),
-                       algorithm='HS256')
+    token = jwt.encode(
+        {
+            'iss': self.zoom_object.key,
+            'exp': int(time.time() + 1800)
+        },
+        str(self.zoom_object.secret),
+        algorithm='HS256')
 
     self.assertEqual(self.api.generate_jwt(), token)
 
   def test_generate_jwt_invalid_token(self):
-    token = jwt.encode({'iss': 'fake', 'exp': int(time.time())},
-                       str(self.zoom_object.secret),
-                       algorithm='HS256')
+    token = jwt.encode(
+        {
+            'iss': 'fake',
+            'exp': int(time.time())
+        }, str(self.zoom_object.secret), algorithm='HS256')
 
     self.assertNotEqual(self.api.generate_jwt(), token)
 
@@ -80,14 +88,18 @@ class TestZoom(TestSettingsBase):
 
   @responses.activate
   def test_get_url_success(self):
-    responses.add(responses.GET, self.single_meeting_recording_info_url, status=200,
-                  json=self.recording_return_payload)
+    responses.add(
+        responses.GET,
+        self.single_meeting_recording_info_url,
+        status=200,
+        json=self.recording_return_payload)
 
-    self.assertEqual(self.api.get_recording_url('some-meeting-id', b'token'),
-                     {'date': datetime.datetime(2018, 1, 1, 1, 1, 1),
-                      'id': 'some-recording-id',
-                      'url': self.single_recording_download}
-                     )
+    self.assertEqual(
+        self.api.get_recording_url('some-meeting-id', b'token'), {
+            'date': datetime.datetime(2018, 1, 1, 1, 1, 1),
+            'id': 'some-recording-id',
+            'url': self.single_recording_download
+        })
 
   @responses.activate
   def test_get_recording_url_fail(self):
@@ -108,13 +120,17 @@ class TestZoom(TestSettingsBase):
 
   @responses.activate
   def test_downloading_file(self):
-    responses.add(responses.GET, self.zak_token_url, status=200, json=self.zak_token_return_payload)
-
-    #TODO(jbedorf): Add some failure requests
+    responses.add(responses.GET, self.zak_token_url, status=404, json=self.zak_token_return_payload)
     responses.add(responses.GET, self.single_recording_download, status=200, stream=True)
 
-    self.assertEqual(self.api.download_recording(self.single_recording_download, b'token'),
-                     '/tmp/random-uid.mp4')
+    with self.assertRaises(zoom.ZoomAPIException):
+      self.api.download_recording(self.single_recording_download, b'token')
+
+    responses.replace(
+        responses.GET, self.zak_token_url, status=200, json=self.zak_token_return_payload)
+    self.assertEqual(
+        self.api.download_recording(self.single_recording_download, b'token'),
+        '/tmp/random-uid.mp4')
 
     os.remove('/tmp/random-uid.mp4')
 
@@ -123,32 +139,55 @@ class TestZoom(TestSettingsBase):
     # For downloading recording.
     responses.add(responses.GET, self.single_recording_download, status=200, stream=True)
     # For sending DELETE http request for
-    responses.add(responses.DELETE, self.single_meeting_recording_info_url, status=200,
-                  json=self.recording_return_payload)
+    responses.add(
+        responses.DELETE,
+        self.single_meeting_recording_info_url,
+        status=200,
+        json=self.recording_return_payload)
 
-    self.assertEqual(self.api.pull_file_from_zoom('some-meeting-id', True),
-                     {'success': False, 'date': None, 'filename': None})
+    self.assertEqual(
+        self.api.pull_file_from_zoom('some-meeting-id', True),
+        {'success': False,
+         'date': None,
+         'filename': None})
 
   @responses.activate
   def test_delete_chat_transcript(self):
-    responses.add(responses.DELETE, self.single_meeting_recording_info_url, status=200,
-                  json={'recording_files': [{'file_type': 'CHAT'}]})
+    responses.add(
+        responses.DELETE,
+        self.single_meeting_recording_info_url,
+        status=200,
+        json={'recording_files': [{
+            'file_type': 'CHAT'
+        }]})
 
-    self.assertEqual(self.api.pull_file_from_zoom('some-meeting-id', True),
-                     {'success': False, 'date': None, 'filename': None})
+    self.assertEqual(
+        self.api.pull_file_from_zoom('some-meeting-id', True),
+        {'success': False,
+         'date': None,
+         'filename': None})
 
   @responses.activate
   def test_handling_zoom_errors_file_pull(self):
     responses.add(responses.GET, self.single_meeting_recording_info_url, status=404)
 
-    self.assertEqual(self.api.pull_file_from_zoom('some-meeting-id', True),
-                     {'success': False, 'date': None, 'filename': None})
+    self.assertEqual(
+        self.api.pull_file_from_zoom('some-meeting-id', True),
+        {'success': False,
+         'date': None,
+         'filename': None})
 
   @responses.activate
   def test_filesystem_errors_file_pull(self):
-    responses.add(responses.GET, self.single_meeting_recording_info_url, status=200,
-                  json=self.recording_return_payload)
+    responses.add(
+        responses.GET,
+        self.single_meeting_recording_info_url,
+        status=200,
+        json=self.recording_return_payload)
 
     self.api.download_recording = MagicMock(side_effect=OSError('Could not write file!'))
-    self.assertEqual(self.api.pull_file_from_zoom('some-meeting-id', True),
-                     {'success': False, 'date': None, 'filename': None})
+    self.assertEqual(
+        self.api.pull_file_from_zoom('some-meeting-id', True),
+        {'success': False,
+         'date': None,
+         'filename': None})
