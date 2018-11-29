@@ -106,6 +106,8 @@ class ZoomAPI:
         # TODO(jbedorf): For now just delete the chat messages and continue processing other files.
         if req['file_type'] == 'CHAT':
           self.delete_recording(meeting_id, req['id'], auth)
+        elif req['file_type'] == 'TRANSCRIPT':
+          self.delete_recording(meeting_id, req['id'], auth)
         elif req['file_type'] == 'MP4':
           date = datetime.datetime.strptime(req['recording_start'], '%Y-%m-%dT%H:%M:%SZ')
           return {'date': date, 'id': req['id'], 'url': req['download_url']}
@@ -144,7 +146,7 @@ class ZoomAPI:
       raise ZoomAPIException(status_code, zoom_request.reason, zoom_request.request, '')
 
     # Use the zak token in order to download the file
-    zoom_request = requests.get(url+"?zak=" + zoom_request.json()['token'], stream=True)
+    zoom_request = requests.get(url + "?zak=" + zoom_request.json()['token'], stream=True)
     filename = url.split('/')[-1]
     outfile = os.path.join(str(self.sys_config.target_folder), filename + '.mp4')
     with open(outfile, 'wb') as source:
