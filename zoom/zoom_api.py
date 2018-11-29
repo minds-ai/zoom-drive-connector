@@ -33,6 +33,7 @@ S = TypeVar("S", bound=APIConfigBase)
 
 class ZoomURLS(Enum):
   recordings = 'https://api.zoom.us/v2/meetings/{id}/recordings'
+  zak_token = 'https://api.zoom.us/v2/users/{user}/token?type=zak'
   delete_recordings = 'https://api.zoom.us/v2/meetings/{id}/recordings/{rid}'
   signin = 'https://api.zoom.us/signin'
 
@@ -100,9 +101,12 @@ class ZoomAPI:
 
     status_code = zoom_request.status_code
     if 200 <= status_code <= 299:
+      log.log(logging.DEBUG, zoom_request.json())
       for req in zoom_request.json()['recording_files']:
         # TODO(jbedorf): For now just delete the chat messages and continue processing other files.
         if req['file_type'] == 'CHAT':
+          self.delete_recording(meeting_id, req['id'], auth)
+        elif req['file_type'] == 'TRANSCRIPT':
           self.delete_recording(meeting_id, req['id'], auth)
         elif req['file_type'] == 'MP4':
           date = datetime.datetime.strptime(req['recording_start'], '%Y-%m-%dT%H:%M:%SZ')
@@ -116,26 +120,38 @@ class ZoomAPI:
     else:
       raise ZoomAPIException(status_code, zoom_request.reason, zoom_request.request, '')
 
-  def download_recording(self, url: str) -> str:
+  def download_recording(self, url: str, auth: bytes) -> str:
     """Downloads video file from Zoom to local folder.
 
     :param url: Download URL for meeting recording.
+    :param auth: Encoded JWT authorization token
     :return: Path to the recording
     """
-    session = requests.Session()
-    session.headers.update({'content-type': 'application/x-www-form-urlencoded'})
 
-    session.post(
-        ZoomURLS.signin.value,
-        data={'email': str(self.zoom_config.username),
-              'password': str(self.zoom_config.password)})
+    # Generate a zak token, required for direct download
+    zoom_url = str(ZoomURLS.zak_token.value).format(user=self.zoom_config.username)
+    try:
+      zoom_request = requests.get(zoom_url, params={'access_token': auth})
+    except requests.exceptions.RequestException as e:
+      log.log(logging.ERROR, e)
+      raise ZoomAPIException(404, 'File Not Found', None, 'Could not connect')
 
+    status_code = zoom_request.status_code
+    if 200 <= status_code <= 299:
+      log.log(logging.DEBUG, zoom_request.json())
+    elif 300 <= status_code <= 599:
+      raise ZoomAPIException(status_code, zoom_request.reason, zoom_request.request,
+                             self.message.get(status_code, ''))
+    else:
+      raise ZoomAPIException(status_code, zoom_request.reason, zoom_request.request, '')
+
+    # Use the zak token in order to download the file
+    zoom_request = requests.get(url + "?zak=" + zoom_request.json()['token'], stream=True)
     filename = url.split('/')[-1]
-    zoom_request = session.get(url, stream=True)
-
     outfile = os.path.join(str(self.sys_config.target_folder), filename + '.mp4')
     with open(outfile, 'wb') as source:
       shutil.copyfileobj(zoom_request.raw, source)  # Copy raw file data to local file.
+
     return outfile
 
   def pull_file_from_zoom(self, meeting_id: str, rm: bool = True) -> Dict[str, Any]:
@@ -155,7 +171,7 @@ class ZoomAPI:
 
       # Get URL and download the file.
       res = self.get_recording_url(meeting_id, zoom_token)
-      filename = self.download_recording(res['url'])
+      filename = self.download_recording(res['url'], zoom_token)
 
       if rm:
         self.delete_recording(meeting_id, res['id'], zoom_token)

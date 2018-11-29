@@ -22,7 +22,6 @@ class TestSettingsBase(unittest.TestCase):
     self.zoom_config = {'key': 'some_key',
                         'secret': 'some_secret',
                         'username': 'some@email.com',
-                        'password': 's0mer4ndomv4lue!',
                         'delete': True,
                         'meetings': [
                           {'id': 'first_id', 'name': 'meeting1'},

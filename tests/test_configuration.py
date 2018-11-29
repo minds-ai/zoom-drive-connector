@@ -78,7 +78,6 @@ class TestZoomConfig(TestSettingsBase):
   def test_getattr(self):
     self.assertEqual(self.zoom.key, 'some_key')
     self.assertEqual(self.zoom.username, 'some@email.com')
-    self.assertEqual(self.zoom.password, 's0mer4ndomv4lue!')
     self.assertTrue(self.zoom.delete)
     self.assertEqual(self.zoom.meetings,
                      [{'id': 'first_id', 'name': 'meeting1'},
@@ -157,7 +156,6 @@ class TestConfigInterface(unittest.TestCase):
       '  key: "zoom_api_key"\n'
       '  secret: "zoom_api_secret"\n'
       '  username: "email@example.com"\n'
-      '  password: "password for email@example.com"\n'
       '  delete: true\n'
       '  meetings:\n'
       '    - {id: "meeting_id" , name: "Meeting Name"}\n'
@@ -211,7 +209,6 @@ class TestConfigInterface(unittest.TestCase):
       key: "zoom_api_key"
       secret: "zoom_api_secret"
       username: "email@example.com"
-      password: "password for email@example.com"
       delete: true
       meetings:
         - {id: "meeting_id" , name: "Meeting Name"}
