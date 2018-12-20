@@ -63,6 +63,17 @@ class SlackConfig(APIConfigBase):
 class ZoomConfig(APIConfigBase):
   _classname = 'zoom'
 
+  def validate(self) -> bool:
+    """Checks to see if all parameters are valid.
+
+    :return: Checks to make sure that the meetings have all required properties
+    """
+    for meeting in self.settings_dict['meetings']:
+      if not all(k in meeting for k in('id', 'folder_id', 'name', 'slack_channel')):
+        return False
+
+    return True
+
 
 class DriveConfig(APIConfigBase):
   _classname = 'drive'
@@ -70,8 +81,7 @@ class DriveConfig(APIConfigBase):
   def validate(self) -> bool:
     """Checks to see if all parameters are valid.
 
-    :return: Checks to make sure that the secret file exists and the folder ID is not empty or
-    otherwise invalid.
+    :return: Checks to make sure that the secret file exists.
     """
     files_exist = os.path.exists(self.settings_dict['client_secret_json'])
     return files_exist
