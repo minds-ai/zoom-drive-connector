@@ -56,7 +56,7 @@ class TestSlackConfig(TestSettingsBase):
     self.assertTrue(self.slack.validate())
 
   def test_getattr(self):
-    self.assertEqual(self.slack.channel_name, 'some_channel')
+    self.assertEqual(self.slack.key, 'random_key')
     with self.assertRaises(KeyError):
       # pylint: disable=unused-variable
       test_value = self.slack.random_value
@@ -80,8 +80,10 @@ class TestZoomConfig(TestSettingsBase):
     self.assertEqual(self.zoom.username, 'some@email.com')
     self.assertTrue(self.zoom.delete)
     self.assertEqual(self.zoom.meetings,
-                     [{'id': 'first_id', 'name': 'meeting1'},
-                      {'id': 'second_id', 'name': 'meeting2'}]
+                    [{'id': 'first_id', 'name': 'meeting1',
+                            'folder_id': 'folder1', 'slack_channel': 'channel-1'},
+                     {'id': 'second_id', 'name': 'meeting2',
+                            'folder_id': 'folder2', 'slack_channel': 'channel-2'}]
                      )
 
     with self.assertRaises(KeyError):
@@ -158,14 +160,14 @@ class TestConfigInterface(unittest.TestCase):
       '  username: "email@example.com"\n'
       '  delete: true\n'
       '  meetings:\n'
-      '    - {id: "meeting_id" , name: "Meeting Name"}\n'
-      '    - {id: "meeting_id2" , name: "Second Meeting Name"}\n'
+      '    - {id: "meeting_id" , name: "Meeting Name", folder_id: "folder-id",\
+      slack_channel: channel_name"}\n'
+      '    - {id: "meeting_id2" , name: "Secind Meeting Name", folder_id: "folder-id2",\
+      slack_channel: channel_name2"}\n'
       'drive:\n'
       '  credentials_json: "/tmp/credentials.json"\n'
       f'  client_secret_json: "{self.secrets_file_name}"\n'
-      '  folder_id: "Some Google Drive Folder ID"\n'
       'slack:\n'
-      '  channel: "channel_name"\n'
       '  key: "slack_api_key"\n'
       'internals:\n'
       '  target_folder: /tmp'
@@ -211,14 +213,12 @@ class TestConfigInterface(unittest.TestCase):
       username: "email@example.com"
       delete: true
       meetings:
-        - {id: "meeting_id" , name: "Meeting Name"}
+        - {id: "meeting_id" , name: "Meeting Name", folder_id: "FolderID", slack_channel: "name"}
         - {id: "meeting_id2" , name: "Second Meeting Name"}
     drive:
       credentials_json: "/tmp/credentials.json"
       client_secret_json: "/tmp/client_secrets.json"
-      folder_id: "Some Google Drive Folder ID"
     slack:
-      channel: "channel_name"
       key: "slack_api_key"
     internals:
       target_folder: /tmp

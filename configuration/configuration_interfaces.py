@@ -74,10 +74,7 @@ class DriveConfig(APIConfigBase):
     otherwise invalid.
     """
     files_exist = os.path.exists(self.settings_dict['client_secret_json'])
-    valid_folder_id = self.settings_dict['folder_id'] is not None \
-        and len(self.settings_dict['folder_id']) > 0
-
-    return files_exist and valid_folder_id
+    return files_exist
 
 
 class SystemConfig(APIConfigBase):
