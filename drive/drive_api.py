@@ -60,7 +60,7 @@ class DriveAPI:
 
     log.log(logging.INFO, 'Drive connection established.')
 
-  def upload_file(self, file_path: str, name: str) -> str:
+  def upload_file(self, file_path: str, name: str, folder_id: str) -> str:
     """Uploads the given file to the specified folder id in Google Drive.
 
     :param file_path: Path to file to upload to Google Drive.
@@ -78,7 +78,7 @@ class DriveAPI:
           name='File error', reason=f'{file_path} could not be found.')
 
     # Google Drive file metadata
-    metadata = {'name': name, 'parents': [self.drive_config.folder_id]}
+    metadata = {'name': name, 'parents': [folder_id]}
 
     # Create a new upload of the recording and execute it.
     media = apiclient.http.MediaFileUpload(file_path, mimetype='video/mp4')
