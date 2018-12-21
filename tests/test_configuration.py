@@ -162,7 +162,7 @@ class TestConfigInterface(unittest.TestCase):
       '  meetings:\n'
       '    - {id: "meeting_id" , name: "Meeting Name", folder_id: "folder-id",\
       slack_channel: channel_name"}\n'
-      '    - {id: "meeting_id2" , name: "Secind Meeting Name", folder_id: "folder-id2",\
+      '    - {id: "meeting_id2" , name: "Second Meeting Name", folder_id: "folder-id2",\
       slack_channel: channel_name2"}\n'
       'drive:\n'
       '  credentials_json: "/tmp/credentials.json"\n'

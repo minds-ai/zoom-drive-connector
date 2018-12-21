@@ -71,13 +71,13 @@ def upload_and_notify(files: List, drive_conn: drive.DriveAPI, slack_conn: slack
       # Get url from upload function.
       file_url = drive_conn.upload_file(file['file'], file['name'], file['folder_id'])
 
-      # The formatted date/time string
+      # The formatted date/time string to be used for older Slack clients
       fall_back = f"{file['date']} UTC"
 
       # Only post message if the upload worked.
-      message = f'The recording of _{file["meeting"]}_ on '
-      message += "_<!date^" + str(file['unix']) + "^{date} at {time}|" + fall_back + ">_"
-      message += f' is <{file_url}| now available>.'
+      message = (f'The recording of _{file["meeting"]}_ on '
+                 f"_<!date^" + str(file['unix']) + "^{date} at {time}|" + fall_back + ">_"
+                 f' is <{file_url}| now available>.')
 
       slack_conn.post_message(message, file['slack_channel'])
     except drive.DriveAPIException as e:

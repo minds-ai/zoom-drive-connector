@@ -65,6 +65,7 @@ class DriveAPI:
 
     :param file_path: Path to file to upload to Google Drive.
     :param name: Final name of the file
+    :param folder_id: The Google Drive folder to upload the file to
     :return: The url of the file in Google Drive.
     """
 

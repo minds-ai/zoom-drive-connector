@@ -64,12 +64,18 @@ class ZoomConfig(APIConfigBase):
   _classname = 'zoom'
 
   def validate(self) -> bool:
-    """Checks to see if all parameters are valid.
+    """Checks to see if all Zoom configuration parameters are valid.
+    This includes checking the 4 items that should be configured per meeting
 
     :return: Checks to make sure that the meetings have all required properties
     """
+
+    if not all(
+       k in self.settings_dict for k in ('key', 'secret', 'username', 'delete', 'meetings')):
+      return False
+
     for meeting in self.settings_dict['meetings']:
-      if not all(k in meeting for k in('id', 'folder_id', 'name', 'slack_channel')):
+      if not all(k in meeting for k in ('id', 'folder_id', 'name', 'slack_channel')):
         return False
 
     return True
@@ -121,7 +127,7 @@ class ConfigInterface:
       # If the error can be identified, print it to the console.
       if hasattr(ye, 'problem_mark'):
         log.log(logging.INFO, f'Error at position ({ye.problem_mark.line + 1}, '
-                              f'{ye.problem_mark.column + 1})')
+                f'{ye.problem_mark.column + 1})')
 
       raise SystemExit  # Crash program
 
