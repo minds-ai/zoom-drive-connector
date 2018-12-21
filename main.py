@@ -76,7 +76,7 @@ def upload_and_notify(files: List, drive_conn: drive.DriveAPI, slack_conn: slack
 
       # Only post message if the upload worked.
       message = (f'The recording of _{file["meeting"]}_ on '
-                 f"_<!date^" + str(file['unix']) + "^{date} at {time}|" + fall_back + ">_"
+                 "_<!date^" + str(file['unix']) + "^{date} at {time}|" + fall_back + ">_"
                  f' is <{file_url}| now available>.')
 
       slack_conn.post_message(message, file['slack_channel'])
