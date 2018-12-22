@@ -13,6 +13,7 @@
 # limitations under the License.
 # ==============================================================================
 
+import datetime
 import logging
 import os
 import time
@@ -50,7 +51,10 @@ def download(zoom_conn: zoom.ZoomAPI, zoom_conf: config.ZoomConfig) -> List[Dict
       result.append({'meeting': meeting['name'],
                      'file': res['filename'],
                      'name': name,
-                     'date': res['date'].strftime('%B %d, %Y at %H:%M')})
+                     'folder_id': meeting['folder_id'],
+                     'slack_channel': meeting['slack_channel'],
+                     'date': res['date'].strftime('%B %d, %Y at %H:%M'),
+                     'unix': int(res['date'].replace(tzinfo=datetime.timezone.utc).timestamp())})
 
   return result
 
@@ -65,12 +69,17 @@ def upload_and_notify(files: List, drive_conn: drive.DriveAPI, slack_conn: slack
   for file in files:
     try:
       # Get url from upload function.
-      file_url = drive_conn.upload_file(file['file'], file['name'])
+      file_url = drive_conn.upload_file(file['file'], file['name'], file['folder_id'])
+
+      # The formatted date/time string to be used for older Slack clients
+      fall_back = f"{file['date']} UTC"
 
       # Only post message if the upload worked.
-      message = f'The recording of _{file["meeting"]}_ on _{file["date"]} UTC_ is <{file_url}| ' \
-                f'now available>.'
-      slack_conn.post_message(message)
+      message = (f'The recording of _{file["meeting"]}_ on '
+                 "_<!date^" + str(file['unix']) + "^{date} at {time}|" + fall_back + ">_"
+                 f' is <{file_url}| now available>.')
+
+      slack_conn.post_message(message, file['slack_channel'])
     except drive.DriveAPIException as e:
       raise e
     # Remove the file after uploading so we do not run out of disk space in our container.

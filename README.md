@@ -18,14 +18,12 @@ zoom:
   username: "email@example.com"
   delete: true
   meetings: 
-    - {id: "meeting_id" , name: "Meeting Name"}
-    - {id: "meeting_id2" , name: "Second Meeting Name"}
+    - {id: "meeting_id" , name: "Meeting Name", folder_id: "Some Google Drive Folder ID", slack_channel: "channel_name"}
+    - {id: "meeting_id2" , name: "Second Meeting Name", folder_id: "Some Google Drive Folder ID2", slack_channel: "channel_name2"}
 drive:
   credentials_json: "conf/credentials.json"
   client_secret_json: "conf/client_secrets.json"
-  folder_id: "Some Google Drive Folder ID"
 slack:
-  channel: "channel_name"
   key: "slack_api_key"
 internals:
   target_folder: "/tmp"
