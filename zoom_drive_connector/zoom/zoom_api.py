@@ -24,8 +24,8 @@ from typing import TypeVar, cast, Dict, Any
 import requests
 import jwt
 
-from zoom import ZoomAPIException
-from configuration import APIConfigBase, ZoomConfig, SystemConfig
+from zoom_drive_connector.zoom import ZoomAPIException
+from zoom_drive_connector.configuration import APIConfigBase, ZoomConfig, SystemConfig
 
 log = logging.getLogger('app')
 S = TypeVar("S", bound=APIConfigBase)

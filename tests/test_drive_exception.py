@@ -15,7 +15,7 @@
 
 import unittest
 
-from drive import DriveAPIException
+from zoom_drive_connector.drive import DriveAPIException
 
 
 class TestDriveAPIException(unittest.TestCase):

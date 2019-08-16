@@ -13,5 +13,4 @@
 # limitations under the License.
 # ==============================================================================
 
-from zoom.zoom_api_exception import ZoomAPIException
-from zoom.zoom_api import ZoomAPI
+from .slack_api import SlackAPI

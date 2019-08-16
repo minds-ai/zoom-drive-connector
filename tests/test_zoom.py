@@ -21,9 +21,9 @@ from unittest.mock import MagicMock
 import os
 import responses
 import jwt
-import zoom
+from zoom_drive_connector import zoom
 
-from configuration import ZoomConfig, SystemConfig
+from zoom_drive_connector.configuration import ZoomConfig, SystemConfig
 
 # pylint: disable=no-member
 # pylint: disable=relative-beyond-top-level

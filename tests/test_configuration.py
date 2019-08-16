@@ -16,7 +16,7 @@
 import unittest
 import tempfile
 import os
-import configuration
+from zoom_drive_connector import configuration
 
 # pylint: disable=relative-beyond-top-level
 from unittest_settings import TestSettingsBase
