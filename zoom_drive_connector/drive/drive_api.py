@@ -21,8 +21,9 @@ import httplib2shim
 import apiclient
 from oauth2client import file, client, tools
 
-from zoom_drive_connector.drive import DriveAPIException
 from zoom_drive_connector.configuration import DriveConfig, SystemConfig, APIConfigBase
+
+from .drive_api_exception import DriveAPIException
 
 log = logging.getLogger('app')
 S = TypeVar("S", bound=APIConfigBase)

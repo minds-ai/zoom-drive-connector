@@ -24,8 +24,9 @@ from typing import TypeVar, cast, Dict, Any
 import requests
 import jwt
 
-from zoom_drive_connector.zoom import ZoomAPIException
 from zoom_drive_connector.configuration import APIConfigBase, ZoomConfig, SystemConfig
+
+from .zoom_api_exception import ZoomAPIException
 
 log = logging.getLogger('app')
 S = TypeVar("S", bound=APIConfigBase)
@@ -111,8 +112,8 @@ class ZoomAPI:
         elif req['file_type'] == 'MP4':
           date = datetime.datetime.strptime(req['recording_start'], '%Y-%m-%dT%H:%M:%SZ')
           return {'date': date, 'id': req['id'], 'url': req['download_url']}
-      # Raise 404 when we do not recognize the file type
-      raise ZoomAPIException(404, 'File Not Found', zoom_request.request,
+      # Raise 404 when we do not recognize the file type.
+      raise ZoomAPIException(404, 'File Not Found', zoom_request.request, # pylint: no-else-raise
                              'File not found or no recordings')
     elif 300 <= status_code <= 599:
       raise ZoomAPIException(status_code, zoom_request.reason, zoom_request.request,
