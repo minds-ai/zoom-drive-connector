@@ -117,13 +117,17 @@ To run the program in the conda environment you can use the following command li
 CONFIG=conf/config.yaml python -u main.py --noauth_local_webserver
 ```
 
-### Running Tests
+### Running Tests and Style Checks
 All new functionality should have accompanying unit tests. Look at the `tests/`
 folder for examples. All tests should be written using the `unittests` framework.
+Additionally, ensure that your code conforms with the given style configurations
+presented in this repository.
 
-To run tests, run the following commands:
+To run tests and style checks, run the following commands:
 ```bash
-$ python -m pytest tests/ # In project root folder.
+$ tox -p all --recreate
+$ ./style_checks.sh  # Run this in the root of the repository.
+$ # You can also check style for a single file by passing the name of the file.
 ```
 
 ## Contributing
