@@ -81,7 +81,7 @@ can enter the generated token.
 ```bash
 $ docker pull docker.pkg.github.com/minds-ai/zoom-drive-connector/zoom-drive-connector:1.1.0
 $ docker run -i -v /path/to/conf/directory:/conf \
-    minds-ai/zoom-drive-connector:1.1.0
+    zoom-drive-connector:1.1.0
 ```
 
 Alternatively, you can clone the repository and run `make build VERSION=1.1.0` to build 
@@ -96,7 +96,7 @@ and follow the steps below to run it in the background.
 Run the following command to start the container after finishing the setup process.
 ```bash
 $ docker run -d -v /path/to/conf/directory:/conf \
-    minds-ai/zoom-drive-connector:1.1.0
+    zoom-drive-connector:1.1.0
 ```
 
 ## Making Changes to Source
