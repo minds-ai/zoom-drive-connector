@@ -46,4 +46,4 @@ ENV CONFIG="/conf/config.yaml"
 
 # Run application.
 ENTRYPOINT ["python"]
-CMD ["-u", "main.py", "--noauth_local_webserver"]
+CMD ["-u", "-m", "zoom_drive_connector", "--noauth_local_webserver"]
