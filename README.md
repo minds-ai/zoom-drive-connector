@@ -9,8 +9,7 @@ public folder in Google Drive. This software aims to fill a missing piece of
 functionality in Zoom (post-meeting recording sharing).
 
 ## Setup
-Clone the repository on to your machine. Create a file called `config.yaml` with 
-the following contents:
+Create a file called `config.yaml` with the following contents:
 ```yaml
 zoom:
   key: "zoom_api_key"
@@ -80,11 +79,13 @@ permissions. For this we run the docker container in the interactive mode such t
 can enter the generated token. 
 
 ```bash
-$ cd zoom-drive-connector/
-$ make build
+$ docker pull docker.pkg.github.com/minds-ai/zoom-drive-connector/zoom-drive-connector:1.1.0
 $ docker run -i -v /path/to/conf/directory:/conf \
-    minds-ai/zoom-drive-connector:latest
+    minds-ai/zoom-drive-connector:1.1.0
 ```
+
+Alternatively, you can clone the repository and run `make build VERSION=1.1.0` to build 
+the container locally.
 
 This will print an URL, this URL should be copied in the browser. After accepting the 
 permissions you will be presented with a token. This token should be pasted in the 
@@ -95,7 +96,7 @@ and follow the steps below to run it in the background.
 Run the following command to start the container after finishing the setup process.
 ```bash
 $ docker run -d -v /path/to/conf/directory:/conf \
-    minds-ai/zoom-drive-connector:latest
+    minds-ai/zoom-drive-connector:1.1.0
 ```
 
 ## Making Changes to Source
