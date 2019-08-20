@@ -23,8 +23,16 @@ environment.yml
 Dockerfile
 Makefile
 
-# Other files that should not be bundled
+# Other files that should not be bundled (keep README, however)
 **/*.md
+!README.md
 
-# Test directory.
+# Test directory
 tests/
+.tox/
+.mypy_cache/
+
+# Local build directories
+build/
+dist/
+*.egg_info
