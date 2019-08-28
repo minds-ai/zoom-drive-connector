@@ -76,16 +76,19 @@ The `credentials` file will be created during the first start (see below).
 ## Running the Program
 The first time we run the program we have to authenticate it with Google and accept the required
 permissions. For this we run the docker container in the interactive mode such that we 
-can enter the generated token. 
+can enter the generated token. Instructions on how to pull Docker images from the Github
+registry can be found 
+[here](https://help.github.com/en/articles/configuring-docker-for-use-with-github-package-registry#authenticating-to-github-package-registry).
 
 ```bash
 $ docker pull docker.pkg.github.com/minds-ai/zoom-drive-connector/zoom-drive-connector:1.1.0
 $ docker run -i -v /path/to/conf/directory:/conf \
-    zoom-drive-connector:1.1.0
+    docker.pkg.github.com/minds-ai/zoom-drive-connector/zoom-drive-connector:1.1.0
 ```
 
 Alternatively, you can clone the repository and run `make build VERSION=1.1.0` to build 
-the container locally.
+the container locally. In this case, you will need to exchange the long image name
+with the short-form one (`zoom-drive-connector:1.1.0`).
 
 This will print an URL, this URL should be copied in the browser. After accepting the 
 permissions you will be presented with a token. This token should be pasted in the 
@@ -96,7 +99,7 @@ and follow the steps below to run it in the background.
 Run the following command to start the container after finishing the setup process.
 ```bash
 $ docker run -d -v /path/to/conf/directory:/conf \
-    zoom-drive-connector:1.1.0
+    docker.pkg.github.com/minds-ai/zoom-drive-connector/zoom-drive-connector:1.1.0
 ```
 
 ## Making Changes to Source
