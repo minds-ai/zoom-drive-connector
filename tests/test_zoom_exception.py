@@ -16,7 +16,7 @@
 import unittest
 
 from requests import PreparedRequest
-from zoom import ZoomAPIException
+from zoom_drive_connector.zoom import ZoomAPIException
 
 
 class TestZoomAPIException(unittest.TestCase):

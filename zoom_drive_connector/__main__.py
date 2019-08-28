@@ -21,11 +21,12 @@ from typing import TypeVar, cast, Dict, List
 
 import schedule
 
-import zoom
-import slack
-import drive
-import configuration as config
-
+from zoom_drive_connector import (
+  configuration as config,
+  drive,
+  slack,
+  zoom
+)
 
 S = TypeVar("S", bound=config.APIConfigBase)
 
@@ -102,7 +103,10 @@ def all_steps(zoom_conn: zoom.ZoomAPI,
   upload_and_notify(downloaded_files, drive_conn, slack_conn)
 
 
-if __name__ == '__main__':
+def main():
+  """Application entrypoint function. Configures logging, parses configuration file, and sets up
+  proper container classes.
+  """
   # App configuration.
   app_config = config.ConfigInterface(os.getenv('CONFIG', '/conf/config.yaml'))
 
@@ -126,3 +130,7 @@ if __name__ == '__main__':
   while True:
     schedule.run_pending()
     time.sleep(1)
+
+
+if __name__ == '__main__':
+  main()

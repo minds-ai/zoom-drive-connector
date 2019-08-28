@@ -17,7 +17,7 @@ import logging
 from typing import TypeVar, cast
 
 from slackclient import SlackClient
-from configuration import SlackConfig, APIConfigBase
+from zoom_drive_connector.configuration import SlackConfig, APIConfigBase
 
 log = logging.getLogger('app')
 S = TypeVar("S", bound=APIConfigBase)

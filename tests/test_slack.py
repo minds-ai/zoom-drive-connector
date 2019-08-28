@@ -14,9 +14,9 @@
 # ==============================================================================
 
 import unittest
-import slack
+from zoom_drive_connector import slack
 
-from configuration import SlackConfig
+from zoom_drive_connector.configuration import SlackConfig
 
 
 class TestSlack(unittest.TestCase):

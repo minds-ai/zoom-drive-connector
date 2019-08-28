@@ -13,9 +13,11 @@
 # limitations under the License.
 # ==============================================================================
 
-from configuration.configuration_interfaces import ConfigInterface
-from configuration.configuration_interfaces import DriveConfig
-from configuration.configuration_interfaces import SystemConfig
-from configuration.configuration_interfaces import SlackConfig
-from configuration.configuration_interfaces import ZoomConfig
-from configuration.configuration_interfaces import APIConfigBase
+from .configuration_interfaces import (
+  APIConfigBase,
+  SlackConfig,
+  ZoomConfig,
+  DriveConfig,
+  SystemConfig,
+  ConfigInterface
+)

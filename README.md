@@ -9,8 +9,7 @@ public folder in Google Drive. This software aims to fill a missing piece of
 functionality in Zoom (post-meeting recording sharing).
 
 ## Setup
-Clone the repository on to your machine. Create a file called `config.yaml` with 
-the following contents:
+Create a file called `config.yaml` with the following contents:
 ```yaml
 zoom:
   key: "zoom_api_key"
@@ -77,14 +76,19 @@ The `credentials` file will be created during the first start (see below).
 ## Running the Program
 The first time we run the program we have to authenticate it with Google and accept the required
 permissions. For this we run the docker container in the interactive mode such that we 
-can enter the generated token. 
+can enter the generated token. Instructions on how to pull Docker images from the Github
+registry can be found 
+[here](https://help.github.com/en/articles/configuring-docker-for-use-with-github-package-registry#authenticating-to-github-package-registry).
 
 ```bash
-$ cd zoom-drive-connector/
-$ make build
+$ docker pull docker.pkg.github.com/minds-ai/zoom-drive-connector/zoom-drive-connector:1.1.0
 $ docker run -i -v /path/to/conf/directory:/conf \
-    minds-ai/zoom-drive-connector:latest
+    docker.pkg.github.com/minds-ai/zoom-drive-connector/zoom-drive-connector:1.1.0
 ```
+
+Alternatively, you can clone the repository and run `make build VERSION=1.1.0` to build 
+the container locally. In this case, you will need to exchange the long image name
+with the short-form one (`zoom-drive-connector:1.1.0`).
 
 This will print an URL, this URL should be copied in the browser. After accepting the 
 permissions you will be presented with a token. This token should be pasted in the 
@@ -95,7 +99,7 @@ and follow the steps below to run it in the background.
 Run the following command to start the container after finishing the setup process.
 ```bash
 $ docker run -d -v /path/to/conf/directory:/conf \
-    minds-ai/zoom-drive-connector:latest
+    docker.pkg.github.com/minds-ai/zoom-drive-connector/zoom-drive-connector:1.1.0
 ```
 
 ## Making Changes to Source
@@ -117,13 +121,17 @@ To run the program in the conda environment you can use the following command li
 CONFIG=conf/config.yaml python -u main.py --noauth_local_webserver
 ```
 
-### Running Tests
+### Running Tests and Style Checks
 All new functionality should have accompanying unit tests. Look at the `tests/`
 folder for examples. All tests should be written using the `unittests` framework.
+Additionally, ensure that your code conforms with the given style configurations
+presented in this repository.
 
-To run tests, run the following commands:
+To run tests and style checks, run the following commands:
 ```bash
-$ python -m pytest tests/ # In project root folder.
+$ tox -p all --recreate
+$ ./style_checks.sh  # Run this in the root of the repository.
+$ # You can also check style for a single file by passing the name of the file.
 ```
 
 ## Contributing

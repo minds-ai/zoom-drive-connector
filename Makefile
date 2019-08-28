@@ -18,16 +18,31 @@ GIT_URL = $(shell git config --local --get remote.origin.url)
 
 ifneq (,$(findstring https, $(GIT_URL)))
 	# Cloned via HTTPS
-	NAME = $(shell echo ${GIT_URL} | awk -F '[/.]' '{print $$5"/"$$6}')
+	ORG = $(shell echo ${GIT_URL} | awk -F '[/.]' '{print $$5}')
+	NAME = $(shell echo ${GIT_URL} | awk -F '[/.]' '{print $$6}')
 else
 	# Cloned via SSH
-	NAME = $(shell echo ${GIT_URL} | awk -F '[:.]' '{print $$3}')
+	ORG = $(shell echo ${GIT_URL} | awk -F '[:/.]' '{print $$3}')
+	NAME = $(shell echo ${GIT_URL} | awk -F '[:/.]' '{print $$4}')
 endif
 
+# Default variables.
 TAG		= $(shell git --no-pager log -1 --pretty=%H)
 IMG		= ${NAME}:${TAG}
-LATEST	= ${NAME}:latest
+
+# Allow end-user to set version number for image. Default to "latest".
+VERSION?=latest
+
+.PHONY : build push-github
 
 build:
+ifeq ($(VERSION),latest)
+	@echo "Warning: Image version set to 'latest'"
+endif
+
 	@docker build -t ${IMG} .
-	@docker tag ${IMG} ${LATEST}
+	@docker tag ${IMG} ${NAME}:${VERSION}
+
+push-github: build
+	@docker tag ${IMG} docker.pkg.github.com/${ORG}/${NAME}/${NAME}:${VERSION}
+	@docker push docker.pkg.github.com/${ORG}/${NAME}/${NAME}:${VERSION}
