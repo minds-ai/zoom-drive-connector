@@ -33,7 +33,7 @@ VOLUME /conf
 # Copy wheel from build container into current container and install.
 WORKDIR /dist
 COPY --from=build /build/dist /dist
-RUN python -m pip install zoom_drive_connector-1.1.0-py3-none-any.whl
+RUN python -m pip install zoom_drive_connector-1.2.0-py3-none-any.whl
 
 # Create runuser and switch to it.
 RUN useradd -ms /bin/false runuser
