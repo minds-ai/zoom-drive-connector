@@ -11,6 +11,7 @@ dependencies:
   - mypy=0.641  # Dev dependency.
   - pycodestyle=2.4.0 # Dev dependency.
   - pylint=1.9.2 # Dev dependency.
+  - pip 
   - pip:
       - pyyaml>=5.1
       - responses==0.10.2 # Dev dependency.

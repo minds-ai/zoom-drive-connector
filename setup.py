@@ -8,7 +8,7 @@ with open(path.join(current_directory, 'README.md'), encoding='utf-8') as f:
 
 setup(
   name='zoom-drive-connector',
-  version='1.1.0',
+  version='1.2.0',
   packages=find_packages(exclude=['tests']),
   url='https://github.com/minds-ai/zoom-drive-connector',
   license='Apache 2.0',

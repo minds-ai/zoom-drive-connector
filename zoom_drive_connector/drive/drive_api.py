@@ -83,13 +83,24 @@ class DriveAPI:
     metadata = {'name': name, 'parents': [folder_id]}
 
     # Create a new upload of the recording and execute it.
-    media = apiclient.http.MediaFileUpload(file_path, mimetype='video/mp4')
+    media = apiclient.http.MediaFileUpload(file_path,
+      mimetype='video/mp4',
+      chunksize=1024*1024,
+      resumable=True
+    )
 
     # pylint: disable=no-member
-    uploaded_file = self._service\
-        .files()\
-        .create(body=metadata, media_body=media, fields='webViewLink', supportsTeamDrives=True)\
-        .execute()
+    request =  self._service.files().create(body=metadata,
+      media_body=media,
+      fields='webViewLink',
+     supportsTeamDrives=True
+    )
+    response = None
+    while response is None:
+      status, response = request.next_chunk()
+      if status:
+        print(f"Uploaded {int(status.progress() * 100)}%")
+    uploaded_file = request.execute()
 
     log.log(logging.INFO, f'File {file_path} uploaded to Google Drive')
 
