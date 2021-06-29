@@ -17,9 +17,11 @@ import os
 import logging
 from typing import TypeVar, cast
 
-import httplib2shim
-import apiclient
-from oauth2client import file, client, tools
+from google.oauth2.credentials import Credentials
+from google.auth.transport.requests import Request
+from google_auth_oauthlib.flow import InstalledAppFlow
+from googleapiclient.discovery import build
+from googleapiclient.http import MediaFileUpload
 
 from zoom_drive_connector.configuration import DriveConfig, SystemConfig, APIConfigBase
 
@@ -48,16 +50,23 @@ class DriveAPI:
     """Triggers the OAuth2 setup flow for Google API endpoints. Requires the ability to open
     a link within a web browser in order to work.
     """
-    store = file.Storage(self.drive_config.credentials_json)
-    creds = store.get()
+    creds = None
+    if os.path.exists(self.drive_config.credentials_json):
+        creds = Credentials.from_authorized_user_file(
+          self.drive_config.credentials_json, self._scopes
+        )
+    if not creds or not creds.valid:
+        if creds and creds.expired and creds.refresh_token:
+            creds.refresh(Request())
+        else:
+            flow = InstalledAppFlow.from_client_secrets_file(
+                self.drive_config.client_secret_json, self._scopes
+            )
+            creds = flow.run_local_server(port=0)
+        with open(self.drive_config.credentials_json, 'w') as token:
+            token.write(creds.to_json())
 
-    if not creds or creds.invalid:
-      flow = client.flow_from_clientsecrets(self.drive_config.client_secret_json, self._scopes)
-      creds = tools.run_flow(flow, store)
-
-    self._service = apiclient.discovery.build('drive',
-                                              'v3',
-                                              http=creds.authorize(httplib2shim.Http()))
+    self._service = build('drive', 'v3', credentials=creds)
 
     log.log(logging.INFO, 'Drive connection established.')
 
@@ -83,7 +92,7 @@ class DriveAPI:
     metadata = {'name': name, 'parents': [folder_id]}
 
     # Create a new upload of the recording and execute it.
-    media = apiclient.http.MediaFileUpload(file_path,
+    media = MediaFileUpload(file_path,
       mimetype='video/mp4',
       chunksize=1024*1024,
       resumable=True
