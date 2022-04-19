@@ -133,26 +133,6 @@ class ZoomAPI:
     :param auth: Encoded JWT authorization token
     :return: Path to the recording
     """
-    # Generate a zak token, required for direct download
-    # zoom_url = str(ZoomURLS.zak_token.value).format(user=self.zoom_config.username)
-    # try:
-    #   zoom_request = requests.get(zoom_url, params={'access_token': auth})
-    # except requests.exceptions.RequestException as e:
-    #   log.log(logging.ERROR, e)
-    #   raise ZoomAPIException(404, 'File Not Found', None, 'Could not connect')
-
-    # status_code = zoom_request.status_code
-    # if 200 <= status_code <= 299:
-    #   log.log(logging.DEBUG, zoom_request.json())
-    # elif 300 <= status_code <= 599:
-    #   raise ZoomAPIException(status_code, zoom_request.reason, zoom_request.request,
-    #                          self.message.get(status_code, ''))
-    # else:
-    #   raise ZoomAPIException(status_code, zoom_request.reason, zoom_request.request, '')
-
-    # Use the zak token in order to download the file
-    # zoom_request = requests.get(url + "?zak=" + zoom_request.json()['token'], stream=True)
-    # June 29, 2021. Zak token downloads started failing, switching back to default JWT token
     zoom_request = requests.get(url, stream=True, params={'access_token': auth})
 
 
