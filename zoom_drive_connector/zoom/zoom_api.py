@@ -106,12 +106,17 @@ class ZoomAPI:
       for req in zoom_request.json()['recording_files']:
         # TODO(jbedorf): For now just delete the chat messages and continue processing other files.
         if req['file_type'] == 'CHAT':
-          self.delete_recording(meeting_id, req['id'], auth)
+          self.delete_recording(req['meeting_id'], req['id'], auth)
         elif req['file_type'] == 'TRANSCRIPT':
-          self.delete_recording(meeting_id, req['id'], auth)
+          self.delete_recording(req['meeting_id'], req['id'], auth)
         elif req['file_type'] == 'MP4':
           date = datetime.datetime.strptime(req['recording_start'], '%Y-%m-%dT%H:%M:%SZ')
-          return {'date': date, 'id': req['id'], 'url': req['download_url']}
+          return {
+            'date': date,
+            'id': req['id'],
+            'url': req['download_url'],
+            'meeting_id': req['meeting_id']
+          }
       # Raise 404 when we do not recognize the file type.
       raise ZoomAPIException(404, 'File Not Found', zoom_request.request, # pylint: no-else-raise
                              'File not found or no recordings')
@@ -178,7 +183,7 @@ class ZoomAPI:
       filename = self.download_recording(res['url'], zoom_token)
 
       if rm:
-        self.delete_recording(meeting_id, res['id'], zoom_token)
+        self.delete_recording(res['meeting_id'], res['id'], zoom_token)
       log.log(logging.INFO, f'File {filename} downloaded for meeting {meeting_id}.')
       return {'success': True, 'date': res['date'], 'filename': filename}
     except ZoomAPIException as ze:
