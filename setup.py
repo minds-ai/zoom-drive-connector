@@ -20,7 +20,7 @@ setup(
   long_description_content_type='text/markdown',
   # Package requirements.
   install_requires=[
-    'pyjwt==1.5.3',
+    'pyjwt==2.4.0',
     'pyyaml>=5.1',
     'slackclient==1.2.1',
     'schedule==0.5.0',
