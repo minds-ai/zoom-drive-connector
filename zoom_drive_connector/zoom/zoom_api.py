@@ -106,12 +106,17 @@ class ZoomAPI:
       for req in zoom_request.json()['recording_files']:
         # TODO(jbedorf): For now just delete the chat messages and continue processing other files.
         if req['file_type'] == 'CHAT':
-          self.delete_recording(meeting_id, req['id'], auth)
+          self.delete_recording(req['meeting_id'], req['id'], auth)
         elif req['file_type'] == 'TRANSCRIPT':
-          self.delete_recording(meeting_id, req['id'], auth)
+          self.delete_recording(req['meeting_id'], req['id'], auth)
         elif req['file_type'] == 'MP4':
           date = datetime.datetime.strptime(req['recording_start'], '%Y-%m-%dT%H:%M:%SZ')
-          return {'date': date, 'id': req['id'], 'url': req['download_url']}
+          return {
+            'date': date,
+            'id': req['id'],
+            'url': req['download_url'],
+            'meeting_id': req['meeting_id']
+          }
       # Raise 404 when we do not recognize the file type.
       raise ZoomAPIException(404, 'File Not Found', zoom_request.request, # pylint: no-else-raise
                              'File not found or no recordings')
@@ -128,26 +133,6 @@ class ZoomAPI:
     :param auth: Encoded JWT authorization token
     :return: Path to the recording
     """
-    # Generate a zak token, required for direct download
-    # zoom_url = str(ZoomURLS.zak_token.value).format(user=self.zoom_config.username)
-    # try:
-    #   zoom_request = requests.get(zoom_url, params={'access_token': auth})
-    # except requests.exceptions.RequestException as e:
-    #   log.log(logging.ERROR, e)
-    #   raise ZoomAPIException(404, 'File Not Found', None, 'Could not connect')
-
-    # status_code = zoom_request.status_code
-    # if 200 <= status_code <= 299:
-    #   log.log(logging.DEBUG, zoom_request.json())
-    # elif 300 <= status_code <= 599:
-    #   raise ZoomAPIException(status_code, zoom_request.reason, zoom_request.request,
-    #                          self.message.get(status_code, ''))
-    # else:
-    #   raise ZoomAPIException(status_code, zoom_request.reason, zoom_request.request, '')
-
-    # Use the zak token in order to download the file
-    # zoom_request = requests.get(url + "?zak=" + zoom_request.json()['token'], stream=True)
-    # June 29, 2021. Zak token downloads started failing, switching back to default JWT token
     zoom_request = requests.get(url, stream=True, params={'access_token': auth})
 
 
@@ -178,7 +163,7 @@ class ZoomAPI:
       filename = self.download_recording(res['url'], zoom_token)
 
       if rm:
-        self.delete_recording(meeting_id, res['id'], zoom_token)
+        self.delete_recording(res['meeting_id'], res['id'], zoom_token)
       log.log(logging.INFO, f'File {filename} downloaded for meeting {meeting_id}.')
       return {'success': True, 'date': res['date'], 'filename': filename}
     except ZoomAPIException as ze:
