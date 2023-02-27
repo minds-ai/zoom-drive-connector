@@ -74,9 +74,12 @@ class ZoomAPI:
     :param auth: JWT token.
     """
     zoom_url = str(ZoomURLS.delete_recordings.value).format(id=meeting_id, rid=recording_id)
-    res = requests.delete(
-        zoom_url, params={'access_token': auth,
-                          'action': 'trash'})  # trash, not delete
+    headers = {
+      'authorization': 'Bearer ' + auth.decode("utf-8"),
+      'content-type': 'application/json'
+    }
+    # trash, not delete
+    res = requests.delete(zoom_url, headers=headers, params={'action': 'trash'})
     status_code = res.status_code
     if 400 <= status_code <= 499:
       raise ZoomAPIException(status_code, res.reason, res.request, self.message.get(
@@ -93,7 +96,11 @@ class ZoomAPI:
     zoom_url = str(ZoomURLS.recordings.value).format(id=meeting_id)
 
     try:
-      zoom_request = requests.get(zoom_url, params={'access_token': auth})
+      headers = {
+        'authorization': 'Bearer ' + auth.decode("utf-8"),
+        'content-type': 'application/json'
+      }
+      zoom_request = requests.get(zoom_url, headers=headers)
     except requests.exceptions.RequestException as e:
       # Failed to make a connection so let's just return a 404, as there is no file
       # but print an additional warning in case it was a configuration error
@@ -133,8 +140,11 @@ class ZoomAPI:
     :param auth: Encoded JWT authorization token
     :return: Path to the recording
     """
-    zoom_request = requests.get(url, stream=True, params={'access_token': auth})
-
+    headers = {
+      'authorization': 'Bearer ' + auth.decode("utf-8"),
+      'content-type': 'application/json'
+    }
+    zoom_request = requests.get(url, stream=True, headers=headers)
 
     filename = url.split('/')[-1]
     outfile = os.path.join(str(self.sys_config.target_folder), filename + '.mp4')
