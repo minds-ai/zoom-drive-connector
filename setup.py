@@ -8,7 +8,7 @@ with open(path.join(current_directory, 'README.md'), encoding='utf-8') as f:
 
 setup(
   name='zoom-drive-connector',
-  version='1.6',
+  version='1.7',
   packages=find_packages(exclude=['tests']),
   url='https://github.com/minds-ai/zoom-drive-connector',
   license='Apache 2.0',
@@ -20,7 +20,6 @@ setup(
   long_description_content_type='text/markdown',
   # Package requirements.
   install_requires=[
-    'pyjwt==1.5.3',
     'pyyaml>=5.1',
     'slackclient==1.2.1',
     'schedule==0.5.0',
