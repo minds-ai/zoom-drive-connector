@@ -69,9 +69,10 @@ class ZoomConfig(APIConfigBase):
 
     :return: Checks to make sure that the meetings have all required properties
     """
-
     if not all(
-       k in self.settings_dict for k in ('key', 'secret', 'username', 'delete', 'meetings')):
+      k in self.settings_dict for k in (
+        'account_id', 'client_id', 'client_secret', 'delete', 'meetings')
+      ):
       return False
 
     for meeting in self.settings_dict['meetings']:

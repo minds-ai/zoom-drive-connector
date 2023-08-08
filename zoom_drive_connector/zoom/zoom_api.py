@@ -16,13 +16,12 @@
 import datetime
 from enum import Enum
 import os
-import time
 import shutil
 import logging
 from typing import TypeVar, cast, Dict, Any
 
 import requests
-import jwt
+from requests.auth import HTTPBasicAuth
 
 from zoom_drive_connector.configuration import APIConfigBase, ZoomConfig, SystemConfig
 
@@ -37,6 +36,7 @@ class ZoomURLS(Enum):
   zak_token = 'https://api.zoom.us/v2/users/{user}/token?type=zak'
   delete_recordings = 'https://api.zoom.us/v2/meetings/{id}/recordings/{rid}'
   signin = 'https://api.zoom.us/signin'
+  oauth_token = 'https://zoom.us/oauth/token'
 
 
 class ZoomAPI:
@@ -58,12 +58,27 @@ class ZoomAPI:
         409: 'File deleted already.'
     }
 
-  def generate_jwt(self) -> bytes:
-    """Generates the JSON web token used for authenticating with Zoom. Sends client key
-    and expiration time encoded with the secret key.
+  def generate_server_to_server_oath_token(self) -> bytes:
+    """Generates the OATH token used for authenticating with Zoom.
+
+    Sends OATH information and receives a token to use for the next hour.
     """
-    payload = {'iss': self.zoom_config.key, 'exp': int(time.time()) + self.timeout}
-    return jwt.encode(payload, str(self.zoom_config.secret), algorithm='HS256')
+    data = {
+      "grant_type" : "account_credentials",
+      "account_id" : self.zoom_config.account_id
+    }
+    headers = {
+     'content-type': 'application/x-www-form-urlencoded'
+    }
+    res = requests.post(
+      ZoomURLS.oauth_token.value,
+      headers=headers,
+      params=data,
+      auth=HTTPBasicAuth(self.zoom_config.client_id, self.zoom_config.client_secret)
+    )
+    if res.status_code != 200:
+      raise ValueError("Failed to authenticate, error: ", res.json())
+    return res.json()["access_token"]
 
   def delete_recording(self, meeting_id: str, recording_id: str, auth: bytes):
     """Given a specific meeting room ID and recording ID, this function moves the recording to the
@@ -71,29 +86,36 @@ class ZoomAPI:
 
     :param meeting_id: UUID associated with a meeting room.
     :param recording_id: The ID of the recording to trash.
-    :param auth: JWT token.
+    :param auth: OAUTH token.
     """
     zoom_url = str(ZoomURLS.delete_recordings.value).format(id=meeting_id, rid=recording_id)
-    res = requests.delete(
-        zoom_url, params={'access_token': auth,
-                          'action': 'trash'})  # trash, not delete
+    headers = {
+      'authorization': 'Bearer ' + auth,
+      'content-type': 'application/json'
+    }
+    # trash, not delete
+    res = requests.delete(zoom_url, headers=headers, params={'action': 'trash'})
     status_code = res.status_code
     if 400 <= status_code <= 499:
       raise ZoomAPIException(status_code, res.reason, res.request, self.message.get(
           status_code, ''))
 
-  def get_recording_url(self, meeting_id: str, auth: bytes) -> Dict[str, Any]:
+  def get_recording_url(self, meeting_id: str, auth: str) -> Dict[str, Any]:
     """Given a specific meeting room ID and auth token, this function gets the download url
     for most recent recording in the given meeting room.
 
     :param meeting_id: UUID associated with a meeting room.
-    :param auth: Encoded JWT authorization token
+    :param auth: Authorization token
     :return: dict containing the date of the recording, the ID of the recording, and the video url.
     """
     zoom_url = str(ZoomURLS.recordings.value).format(id=meeting_id)
 
     try:
-      zoom_request = requests.get(zoom_url, params={'access_token': auth})
+      headers = {
+        'authorization': 'Bearer ' + auth,
+        'content-type': 'application/json'
+      }
+      zoom_request = requests.get(zoom_url, headers=headers)
     except requests.exceptions.RequestException as e:
       # Failed to make a connection so let's just return a 404, as there is no file
       # but print an additional warning in case it was a configuration error
@@ -126,15 +148,18 @@ class ZoomAPI:
     else:
       raise ZoomAPIException(status_code, zoom_request.reason, zoom_request.request, '')
 
-  def download_recording(self, url: str, auth: bytes) -> str:
+  def download_recording(self, url: str, auth: str) -> str:
     """Downloads video file from Zoom to local folder.
 
     :param url: Download URL for meeting recording.
-    :param auth: Encoded JWT authorization token
+    :param auth: Authorization token.
     :return: Path to the recording
     """
-    zoom_request = requests.get(url, stream=True, params={'access_token': auth})
-
+    headers = {
+      'authorization': 'Bearer ' + auth,
+      'content-type': 'application/json'
+    }
+    zoom_request = requests.get(url, stream=True, headers=headers)
 
     filename = url.split('/')[-1]
     outfile = os.path.join(str(self.sys_config.target_folder), filename + '.mp4')
@@ -155,8 +180,9 @@ class ZoomAPI:
     """
     result = {'success': False, 'date': None, 'filename': None}
     try:
+      log.log(logging.INFO, f'Found recording for meeting {meeting_id} starting download...')
       # Generate token and Authorization header.
-      zoom_token = self.generate_jwt()
+      zoom_token = self.generate_server_to_server_oath_token()
 
       # Get URL and download the file.
       res = self.get_recording_url(meeting_id, zoom_token)
