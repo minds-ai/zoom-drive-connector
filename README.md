@@ -8,6 +8,30 @@ webinars on Zoom. It can also be used to distribute VODs (videos on demand) to
 public folder in Google Drive. This software aims to fill a missing piece of
 functionality in Zoom (post-meeting recording sharing).
 
+
+## December 2024 update
+
+Support added for Zoom Webhooks. This allows the program to be notified when a new recording is
+available. This is a more efficient way to handle new recordings, as the program does not need to
+poll the Zoom API every few minutes. The program will now listen for new recordings and upload
+them to Google Drive as soon as they are available.
+
+To use this feature, you need to set up a webhook in Zoom. This can be done by following the
+instructions in the Zoom API documentation. You will need to provide the URL of the server where
+the program is running, and a secret key that will be used to verify the authenticity of the
+webhook requests. The secret key should be added to the `config.yaml` file under the `zoom` section.
+
+In addition to the download and upload functionality of recordings, the program can also post
+the AI generated summary of the meeting to a Slack channel. Note, that the message will be posted
+to the main channel and the summary to the thread of the main message.
+
+To enable this the Slack bot needs the following permissions:
+- chat:write
+- channels:history
+- groups:history
+
+
+
 ## Setup
 Create a file called `config.yaml` with the following contents:
 ```yaml
@@ -15,10 +39,11 @@ zoom:
   account_id: "Zoom account ID"
   client_id: "OAuth client ID"
   client_secret: "OAuth client secret"
+  webhook_secret: "Secret when using the webhook, can be ignored if using the polling method"
   delete: true
   meetings:
-    - {id: "meeting_id" , name: "Meeting Name", folder_id: "Some Google Drive Folder ID", slack_channel: "channel_name"}
-    - {id: "meeting_id2" , name: "Second Meeting Name", folder_id: "Some Google Drive Folder ID2", slack_channel: "channel_name2"}
+    - {id: "meeting_id" , name: "Meeting Name", folder_id: "Some Google Drive Folder ID", slack_channel: "channel_ID"}
+    - {id: "meeting_id2" , name: "Second Meeting Name", folder_id: "Some Google Drive Folder ID2", slack_channel: "channel_ID2"}
 drive:
   credentials_json: "conf/credentials.json"
   client_secret_json: "conf/client_secrets.json"
@@ -66,12 +91,62 @@ The `credentials` file will be created during the first start (see below).
 ### Slack
 1. Register a new app using [this link](https://api.slack.com/apps/new).
 2. Under "Add features and functionality" select "Permissions".
-3. Under 'Scopes' select `chat:write:bot`.
+3. Under 'Scopes' select `chat:write:bot` . When using the Webhook & Summary feature you also
+   need to select `channels:history` and `groups:history`.
 4. On the same page copy the "OAuth Access Token".
    Paste that value into the configuration file under the `slack` section.
-5. Put the name of the Slack channel to post statuses in the config file.
+5. Put the ID of the Slack channel to post statuses/summaries in the config file.
+   Note, make sure to use the ID and not the name. You can get the ID by looking at the channel details.
 
-## Running the Program
+## Running the Program in webhook mode
+
+Note for this we assume Azure Functions. In theory any other (serverless) function can be used.
+
+To enable the Zoom webhook functionality, you need to set up a webhook in Zoom. This can be done by
+following the instructions in the Zoom API documentation. You will need to provide the URL of the
+server where the program is running, and a secret key that will be used to verify the authenticity
+of the webhook requests. The secret key should be added to the `config.yaml` file under the `zoom`
+section.
+
+Zoom documentation: https://marketplace.zoom.us/docs/api-reference/webhook-reference/
+
+To run the program in Azure Functions, you need to create a new function app and add a new function
+to it. You can do this by following the instructions in the Azure Functions documentation.
+
+Azure Functions documentation: https://learn.microsoft.com/en-us/azure/azure-functions/
+
+**In short:**
+- Create a new function app in the Azure portal.
+- Select the 'Flex Consumption' plan.
+  - Set the app name/region/resource group to your preference.
+  - Set the runtime stack to 'Python', Version to 3.11 and instance size to 2048 MB.
+  - Create a new storage account using the default settings.
+  - Everything else can be left as default.
+- After deployment add the `Secrets & Configuration` as described below.
+- Deploy the app using your favorite method (e.g. VSCode extension, Azure CLI, etc.)
+
+
+
+**Secrets & Configuration:**
+- If you don't have a 'credentials.json' and 'client_secrets.json' file, you can create them by
+  following the instructions in the Google Drive section above.
+
+- The `config.yaml` file should be stored in the Environment Variables of the function app.
+  - Environment variable: `ZOOM_DRIVE_SLACK_CONFIG`
+- The content of the 'credentials.json' should be stored in the
+  Environment Variables of the function app.
+  - Environment variable: `GOOGLE_APPLICATION_CREDENTIALS`
+- The Zoom Webhook token should be stored in the Environment Variables of the function app.
+  - Environment variable: `ZOOM_WEBHOOK_TOKEN`
+- The content of the files should be encoded as base64 strings. You can use the following command
+  to encode the content of a file as a base64 string:
+  ```bash
+  base64 -w 0 /path/to/file
+  ```
+
+
+
+## Running the Program in polling mode
 The first time we run the program we have to authenticate it with Google and accept the required
 permissions. For this we run the docker container in the interactive mode such that we
 can enter the generated token. Instructions on how to pull Docker images from the Github

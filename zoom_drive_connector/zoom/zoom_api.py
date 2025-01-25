@@ -16,9 +16,11 @@
 import datetime
 from enum import Enum
 import os
+import hmac
+import hashlib
 import shutil
 import logging
-from typing import TypeVar, cast, Dict, Any
+from typing import List, TypeVar, cast, Dict, Any
 
 import requests
 from requests.auth import HTTPBasicAuth
@@ -37,6 +39,44 @@ class ZoomURLS(Enum):
   delete_recordings = 'https://api.zoom.us/v2/meetings/{id}/recordings/{rid}'
   signin = 'https://api.zoom.us/signin'
   oauth_token = 'https://zoom.us/oauth/token'
+
+
+
+
+# Create a class to handle the Zoom Webhook
+class ZoomWebhook:
+    def __init__(self, token: str):
+        self.secret_token = token
+
+    def verify_headers(self, headers: Dict, body: str) -> bool:
+        """Verify the headers of the request, to validate the request is from Zoom."""
+        if "x-zm-signature" not in headers or "x-zm-request-timestamp" not in headers:
+            print("Invalid Zoom Headers, missing items. Content: ")
+            for key, value in headers.items():
+                print(f"   {key} = {value}")
+            return False
+
+        timestamp = headers["x-zm-request-timestamp"]
+
+
+        hash_to_verify = hmac.new(
+            self.secret_token.encode("utf-8"),
+            f"v0:{timestamp}:{body}".encode("utf-8"),
+            hashlib.sha256,
+        ).hexdigest()
+        signature = f"v0={hash_to_verify}"
+        return True
+        return hmac.compare_digest(signature, req.headers["x-zm-signature"])
+
+    def handle_validation_event(self, body: dict):
+        """Handle the validation of the Zoom Webhook URL."""
+        secret_token = self.secret_token.encode("utf-8")
+        plain_token = body["payload"]["plainToken"]
+        message = plain_token.encode("utf-8")
+        hashed = hmac.new(secret_token, message, hashlib.sha256).digest()
+        return {"plainToken": plain_token, "encryptedToken": hashed.hex()}
+
+
 
 
 class ZoomAPI:
@@ -95,6 +135,7 @@ class ZoomAPI:
     }
     # trash, not delete
     res = requests.delete(zoom_url, headers=headers, params={'action': 'trash'})
+    log.log(logging.INFO, f'Deleting recording {recording_id} for meeting {meeting_id}...')
     status_code = res.status_code
     if 400 <= status_code <= 499:
       raise ZoomAPIException(status_code, res.reason, res.request, self.message.get(
@@ -137,7 +178,7 @@ class ZoomAPI:
             'date': date,
             'id': req['id'],
             'url': req['download_url'],
-            'meeting_id': req['meeting_id']
+            'meeting_id': req['meeting_id'],
           }
       # Raise 404 when we do not recognize the file type.
       raise ZoomAPIException(404, 'File Not Found', zoom_request.request, # pylint: no-else-raise
@@ -148,7 +189,7 @@ class ZoomAPI:
     else:
       raise ZoomAPIException(status_code, zoom_request.reason, zoom_request.request, '')
 
-  def download_recording(self, url: str, auth: str) -> str:
+  def download_recording(self, url: str, auth: str, filename: str="") -> str:
     """Downloads video file from Zoom to local folder.
 
     :param url: Download URL for meeting recording.
@@ -161,12 +202,29 @@ class ZoomAPI:
     }
     zoom_request = requests.get(url, stream=True, headers=headers)
 
-    filename = url.split('/')[-1]
+    filename = filename or url.split('/')[-1]
     outfile = os.path.join(str(self.sys_config.target_folder), filename + '.mp4')
     with open(outfile, 'wb') as source:
       shutil.copyfileobj(zoom_request.raw, source)  # Copy raw file data to local file.
 
     return outfile
+
+  def download_webhook_recording(self, url: str, download_token: str, filename: str="") -> str:
+    """Downloads video file from Zoom to local folder.
+
+    :param url: Download URL for meeting recording.
+    :param auth: Authorization token.
+    :return: Path to the recording
+    """
+    url = f"{url}?access_token={download_token}"
+    zoom_request = requests.get(url, stream=True)
+
+    outfile = os.path.join(str(self.sys_config.target_folder), filename)
+    with open(outfile, 'wb') as source:
+      shutil.copyfileobj(zoom_request.raw, source)  # Copy raw file data to local file.
+
+    return outfile
+
 
   def pull_file_from_zoom(self, meeting_id: str, rm: bool = True) -> Dict[str, Any]:
     """Interface for downloading recordings from Zoom. Optionally trashes recorded file on Zoom.
@@ -192,6 +250,112 @@ class ZoomAPI:
         self.delete_recording(res['meeting_id'], res['id'], zoom_token)
       log.log(logging.INFO, f'File {filename} downloaded for meeting {meeting_id}.')
       return {'success': True, 'date': res['date'], 'filename': filename}
+    except ZoomAPIException as ze:
+      if ze.http_method and ze.http_method == 'DELETE':
+        log.log(logging.INFO, ze)
+        # Allow other systems to proceed if delete fails.
+        result['success'] = True
+        return result
+      log.log(logging.ERROR, ze)
+      return result
+    except OSError as fe:
+      # Catches general filesystem errors. If download could not be written to disk, stop.
+      log.log(logging.ERROR, fe)
+      return result
+
+
+  def webhook_summary_message(self, zoom_body: Dict) -> Dict[str, Any]:
+    log.info(f"Processing webhook for completed summary.")
+
+    result = {'success': False, 'summary': None, 'slack_channel': None, 'meeting': None}
+
+    meeting_id = zoom_body["payload"]["object"]["meeting_id"]
+
+
+    meeting_config = next(
+      (meeting for meeting in self.zoom_config.meetings if meeting['id'] == str(meeting_id)), None
+    )
+    if not meeting_config:
+        log.log(logging.ERROR, f"Meeting {meeting_id} not found in configuration.")
+        return result
+
+    result["slack_channel"] = meeting_config["slack_channel"]
+    result["meeting"] = meeting_config["name"]
+    result["meeting_uuid"] = zoom_body["payload"]["object"]["meeting_uuid"]
+    result["success"] = True
+
+    info = zoom_body["payload"]["object"]
+
+    result["summary"] = {
+      "date": datetime.datetime.strptime(info["meeting_start_time"], '%Y-%m-%dT%H:%M:%SZ'),
+      "title": info.get("summary_title", "Summary"),
+      "overview": info.get("summary_overview", "No overview provided."),
+      "details": info.get("summary_details", []),
+      "next_steps": info.get("next_steps", []),
+    }
+    log.log(logging.INFO, f"Meeting {meeting_id} summary processed and returned.")
+    return result
+
+
+  def webhook_recording_complete(self, zoom_body: Dict, types_to_download: List) -> Dict[str, Any]:
+
+    log.info(f"Processing webhook for completed recording.")
+
+    result = {'success': False, 'date': [], 'filename': []}
+
+    meeting_id = zoom_body["payload"]["object"]["id"]
+    recording_files = zoom_body["payload"]["object"]["recording_files"]
+
+    log.info(f"Meeting ID: {meeting_id}")
+
+    meeting_config = next(
+      (meeting for meeting in self.zoom_config.meetings if meeting['id'] == str(meeting_id)), None
+    )
+    if not meeting_config:
+        log.log(logging.ERROR, f"Meeting {meeting_id} not found in configuration.")
+        return result
+
+    result["folder_id"] = meeting_config["folder_id"]
+    result["slack_channel"] = meeting_config["slack_channel"]
+    result["meeting"] = meeting_config["name"]
+    result['meeting_uuid'] = zoom_body["payload"]["object"]["uuid"]
+
+    meeting_config: Dict = None
+    for meeting in self.zoom_config.meetings:
+      if meeting['id'] == str(meeting_id):
+        meeting_config = meeting
+    if not meeting_config:
+      log.log(logging.ERROR, f"Meeting {meeting_id} not found in configuration.")
+      return result
+
+
+    try:
+      log.log(logging.INFO, f'Recording triggered for meeting {meeting_id} starting download...')
+      # Generate token and Authorization header.
+      zoom_token = self.generate_server_to_server_oath_token()
+
+      for file_info in recording_files:
+        if file_info["file_type"].upper() in types_to_download:
+          date = datetime.datetime.strptime(file_info['recording_start'], '%Y-%m-%dT%H:%M:%SZ')
+          tmp_name = f"{meeting_config['name']}-{date}.{file_info['file_extension'].lower()}"
+
+
+          filename = self.download_webhook_recording(
+            file_info["download_url"],
+            zoom_body["download_token"],
+            tmp_name,
+          )
+          log.log(logging.INFO, f'File {filename} downloaded for meeting {meeting_id}.')
+          result['filename'].append(filename)
+          result['date'].append(date)
+        else:
+          log.log(logging.INFO, f'Skipping file-type: {file_info["file_type"]}')
+
+        if self.zoom_config.delete:
+          self.delete_recording(meeting_id, file_info['id'], zoom_token)
+      result['success'] = True
+      return result
+
     except ZoomAPIException as ze:
       if ze.http_method and ze.http_method == 'DELETE':
         log.log(logging.INFO, ze)

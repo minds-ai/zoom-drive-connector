@@ -13,6 +13,8 @@
 # limitations under the License.
 # ==============================================================================
 
+import base64
+import json
 import os
 import logging
 from typing import TypeVar, cast
@@ -51,10 +53,17 @@ class DriveAPI:
     a link within a web browser in order to work.
     """
     creds = None
-    if os.path.exists(self.drive_config.credentials_json):
+
+    if (env_data :=os.environ.get('GOOGLE_APPLICATION_CREDENTIALS')):
+      decoded_data = base64.b64decode(env_data).decode("utf-8")
+      creds_info = json.loads(decoded_data)
+      creds = Credentials.from_authorized_user_info(creds_info, self._scopes)
+      log.log(logging.INFO, 'Using Google Application Credentials from environment')
+    elif os.path.exists(self.drive_config.credentials_json):
         creds = Credentials.from_authorized_user_file(
           self.drive_config.credentials_json, self._scopes
         )
+
     if not creds or not creds.valid:
         if creds and creds.expired and creds.refresh_token:
             creds.refresh(Request())
@@ -63,7 +72,11 @@ class DriveAPI:
                 self.drive_config.client_secret_json, self._scopes
             )
             creds = flow.run_local_server(port=0)
-        with open(self.drive_config.credentials_json, 'w') as token:
+
+        # Don't write the credentials if we are using the environment variable. Azure functions
+        # uses a read-only file system
+        if "GOOGLE_APPLICATION_CREDENTIALS" not in os.environ:
+          with open(self.drive_config.credentials_json, 'w') as token:
             token.write(creds.to_json())
 
     self._service = build('drive', 'v3', credentials=creds)
