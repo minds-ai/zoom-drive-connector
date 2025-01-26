@@ -15,3 +15,5 @@
 
 from .zoom_api import ZoomAPI, ZoomWebhook
 from .zoom_api_exception import ZoomAPIException
+
+__all__ = ['ZoomAPI','ZoomAPIException', 'ZoomWebhook']

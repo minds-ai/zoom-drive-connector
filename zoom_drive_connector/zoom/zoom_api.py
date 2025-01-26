@@ -65,8 +65,7 @@ class ZoomWebhook:
             hashlib.sha256,
         ).hexdigest()
         signature = f"v0={hash_to_verify}"
-        return True
-        return hmac.compare_digest(signature, req.headers["x-zm-signature"])
+        return hmac.compare_digest(signature, headers["x-zm-signature"])
 
     def handle_validation_event(self, body: dict):
         """Handle the validation of the Zoom Webhook URL."""
@@ -265,7 +264,7 @@ class ZoomAPI:
 
 
   def webhook_summary_message(self, zoom_body: Dict) -> Dict[str, Any]:
-    log.info(f"Processing webhook for completed summary.")
+    log.info("Processing webhook for completed summary.")
 
     result = {'success': False, 'summary': None, 'slack_channel': None, 'meeting': None}
 
@@ -299,7 +298,7 @@ class ZoomAPI:
 
   def webhook_recording_complete(self, zoom_body: Dict, types_to_download: List) -> Dict[str, Any]:
 
-    log.info(f"Processing webhook for completed recording.")
+    log.info("Processing webhook for completed recording.")
 
     result = {'success': False, 'date': [], 'filename': []}
 

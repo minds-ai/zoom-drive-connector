@@ -144,7 +144,7 @@ class ConfigInterface:
       data = os.environ.get('ZOOM_DRIVE_SLACK_CONFIG')
       decoded_yaml = base64.b64decode(data).decode("utf-8")
       dict_from_yaml = yaml.safe_load(decoded_yaml)
-      log.log(logging.INFO, f'Loaded YAML config from environment variable')
+      log.log(logging.INFO, 'Loaded YAML config from environment variable')
     else:
       dict_from_yaml = self.__load_config()
 
