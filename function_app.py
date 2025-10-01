@@ -96,9 +96,11 @@ def zoom_handle(req: func.HttpRequest, queue: func.Out[str]) -> func.HttpRespons
             status_code=200,
             headers={"Content-Type": "application/json"},
         )
-    except Exception as e:
-        logging.error(f"Error: {e}")
-        return func.HttpResponse("An error occurred while processing the request.", status_code=500)
+    except Exception:
+        error_msg = "An error occurred while processing the request."
+        logging.exception(error_msg)
+        return func.HttpResponse(error_msg, status_code=500)
+
 
 
 @app.queue_trigger(arg_name="msg", queue_name="myqueue", connection="AzureWebJobsStorage")
@@ -131,8 +133,9 @@ def process_meeting_summary_event(zoom_body: dict) -> None:
         if result["success"]:
             slack_api.post_summary(result, result["slack_channel"])
             logging.info("Meeting summary event processed successfully")
-    except Exception as e:
-        logging.error(f"Error processing meeting summary event: {e}", exc_info=True)
+    except Exception:
+        logging.exception("Error processing meeting summary event.")
+
 
 
 def process_recording_complete_event(zoom_body: dict) -> None:
@@ -166,5 +169,6 @@ def process_recording_complete_event(zoom_body: dict) -> None:
                 raise e
             # Remove the file after uploading so we do not run out of disk space in our container.
             os.remove(fname)
-    except Exception as e:
-        logging.error(f"Error processing queue message: {e}", exc_info=True)
+    except Exception:
+        logging.exception(f"Error processing queue message.")
+
