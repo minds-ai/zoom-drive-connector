@@ -170,5 +170,6 @@ def process_recording_complete_event(zoom_body: dict) -> None:
             # Remove the file after uploading so we do not run out of disk space in our container.
             os.remove(fname)
     except Exception:
-        logging.exception(f"Error processing queue message.")
+        logging.exception("Error processing queue message.")
+
 
