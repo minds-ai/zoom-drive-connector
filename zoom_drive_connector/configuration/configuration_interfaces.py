@@ -16,6 +16,7 @@
 # ==============================================================================
 from typing import Dict, Union, Any
 
+import base64
 import logging
 import os
 import yaml
@@ -90,6 +91,8 @@ class DriveConfig(APIConfigBase):
 
     :return: Checks to make sure that the secret file exists.
     """
+    if "GOOGLE_APPLICATION_CREDENTIALS" in os.environ:
+      return True
     files_exist = os.path.exists(self.settings_dict['client_secret_json'])
     return files_exist
 
@@ -137,7 +140,13 @@ class ConfigInterface:
     and instantiates the corresponding configuration class depending on the name of the key. Each
     class then has its validation method run to check for any errors.
     """
-    dict_from_yaml = self.__load_config()
+    if self.file == "":
+      data = os.environ.get('ZOOM_DRIVE_SLACK_CONFIG')
+      decoded_yaml = base64.b64decode(data).decode("utf-8")
+      dict_from_yaml = yaml.safe_load(decoded_yaml)
+      log.log(logging.INFO, 'Loaded YAML config from environment variable')
+    else:
+      dict_from_yaml = self.__load_config()
 
     # Iterate through all keys and their corresponding values.
     for key, value in dict_from_yaml.items():

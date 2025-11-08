@@ -13,5 +13,7 @@
 # limitations under the License.
 # ==============================================================================
 
-from .zoom_api import ZoomAPI
+from .zoom_api import ZoomAPI, ZoomWebhook
 from .zoom_api_exception import ZoomAPIException
+
+__all__ = ['ZoomAPI','ZoomAPIException', 'ZoomWebhook']

@@ -1,6 +1,13 @@
-pyyaml>=5.1
-slackclient==1.2.1
+# DO NOT include azure-functions-worker in this file
+# The Python Worker is managed by Azure Functions platform
+# Manually managing azure-functions-worker may cause unexpected issues
+
+azure-functions==1.21.3
+PyYAML==6.0.2
+
+slackclient==2.9.4
+google-api-python-client==2.156.0
+google-auth-httplib2==0.2.0
+google-auth-oauthlib==1.2.1
+
 schedule==0.5.0
-google-api-python-client==2.10.0
-google-auth-httplib2==0.1.0
-google-auth-oauthlib==0.4.4

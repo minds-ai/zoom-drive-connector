@@ -1,0 +1,16 @@
+.git*
+.vscode
+__azurite_db*__.json
+__blobstorage__
+__queuestorage__
+local.settings.json
+test
+.venv
+
+# Custom additions
+old
+__pycache__
+config.yaml
+.ruff_cache
+credentials.json
+client_secrets.json
